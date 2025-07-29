@@ -36,18 +36,21 @@ func main() {
 	customerRepo := repository.NewCustomerRepository(db)
 	transactionRepo := repository.NewTransactionRepository(db)
 	receiptRepo := repository.NewReceiptRepository(db)
+	userRepo := repository.NewUserRepository(db)
 
 	// Initialize services
 	carService := service.NewCarService(carRepo)
 	customerService := service.NewCustomerService(customerRepo)
 	transactionService := service.NewTransactionService(transactionRepo, carRepo, customerRepo, receiptRepo)
 	receiptService := service.NewReceiptService(receiptRepo)
+	userService := service.NewUserService(userRepo)
 
 	// Initialize handlers
 	carHandler := handler.NewCarHandler(carService)
 	customerHandler := handler.NewCustomerHandler(customerService)
 	transactionHandler := handler.NewTransactionHandler(transactionService)
 	receiptHandler := handler.NewReceiptHandler(receiptService)
+	userHandler := handler.NewUserHandler(userService)
 
 	// Setup Gin router
 	r := gin.Default()
@@ -123,6 +126,21 @@ func main() {
 			receipts.GET("/number", receiptHandler.GetReceiptByNumber)
 			receipts.GET("/search", receiptHandler.SearchReceipts)
 			receipts.DELETE("/:id", receiptHandler.DeleteReceipt)
+		}
+
+		// User routes
+		users := api.Group("/users")
+		{
+			users.POST("", userHandler.CreateUser)
+			users.GET("", userHandler.GetAllUsers)
+			users.GET("/:id", userHandler.GetUser)
+			users.PUT("/:id", userHandler.UpdateUser)
+			users.DELETE("/:id", userHandler.DeleteUser)
+			users.GET("/username", userHandler.GetUserByUsername)
+			users.GET("/email", userHandler.GetUserByEmail)
+			users.GET("/search", userHandler.SearchUsers)
+			users.GET("/role/:role", userHandler.GetUsersByRole)
+			users.POST("/:id/login", userHandler.UpdateLastLogin)
 		}
 	}
 

@@ -77,6 +77,21 @@ Returns the health status of the API.
 | GET | `/api/receipts/search?q={query}` | Search receipts |
 | DELETE | `/api/receipts/{id}` | Soft delete receipt |
 
+### Users
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/users` | Create a new user |
+| GET | `/api/users` | Get all users (paginated) |
+| GET | `/api/users/{id}` | Get user by ID |
+| PUT | `/api/users/{id}` | Update user information |
+| DELETE | `/api/users/{id}` | Soft delete user |
+| GET | `/api/users/username?username={username}` | Get user by username |
+| GET | `/api/users/email?email={email}` | Get user by email |
+| GET | `/api/users/search?q={query}` | Search users |
+| GET | `/api/users/role/{role}` | Get users by role |
+| POST | `/api/users/{id}/login` | Update last login time |
+
 ## Request/Response Format
 
 ### Standard Response Structure
@@ -150,6 +165,20 @@ curl -X POST http://localhost:8080/api/customers \
   }'
 ```
 
+### Create User
+
+```bash
+curl -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "new_user",
+    "email": "user@carshowroom.com",
+    "first_name": "New",
+    "last_name": "User",
+    "role": "salesperson"
+  }'
+```
+
 ### Create Transaction
 
 ```bash
@@ -183,6 +212,11 @@ curl -X POST http://localhost:8080/api/transactions \
 - `available`: Car is available for sale
 - `sold`: Car has been sold
 - `reserved`: Car is reserved for a customer
+
+## User Roles
+- `admin`: System administrator with full access
+- `manager`: Manager with supervisory access
+- `salesperson`: Sales staff with customer interaction access
 
 ## Payment Methods
 - `cash`: Cash payment

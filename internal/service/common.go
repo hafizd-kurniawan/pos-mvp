@@ -125,3 +125,19 @@ func PaginatedSuccessResponse(message string, data interface{}, page, limit, tot
 		},
 	}
 }
+
+// Helper function to calculate pagination info
+func CalculatePagination(page, limit, total int) *PaginationInfo {
+	totalPages := (total + limit - 1) / limit
+	hasNext := page < totalPages
+	hasPrev := page > 1
+
+	return &PaginationInfo{
+		Page:       page,
+		Limit:      limit,
+		Total:      total,
+		TotalPages: totalPages,
+		HasNext:    hasNext,
+		HasPrev:    hasPrev,
+	}
+}
