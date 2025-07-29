@@ -47,6 +47,19 @@ func (s *userService) CreateUser(user *model.User) error {
 		return errors.New("last name is required")
 	}
 
+	// Set default password if not provided
+	if user.Password == "" {
+		user.Password = "password" // Default password
+	}
+
+	// Hash password
+	authService := NewAuthService("default-secret", 24*time.Hour)
+	hashedPassword, err := authService.HashPassword(user.Password)
+	if err != nil {
+		return err
+	}
+	user.Password = hashedPassword
+
 	// Validate role
 	validRoles := map[string]bool{
 		"admin":       true,

@@ -31,6 +31,7 @@ type Car struct {
 // Customer represents a customer
 type Customer struct {
 	BaseModel
+	CustomerCode string `json:"customer_code" db:"customer_code"`
 	FirstName   string `json:"first_name" db:"first_name"`
 	LastName    string `json:"last_name" db:"last_name"`
 	Email       string `json:"email" db:"email"`
@@ -83,9 +84,10 @@ type User struct {
 	BaseModel
 	Username    string    `json:"username" db:"username"`
 	Email       string    `json:"email" db:"email"`
+	Password    string    `json:"password,omitempty" db:"password"`
 	FirstName   string    `json:"first_name" db:"first_name"`
 	LastName    string    `json:"last_name" db:"last_name"`
-	Role        string    `json:"role" db:"role"` // salesperson, manager, admin
+	Role        string    `json:"role" db:"role"` // admin, manager, salesperson, mechanic, cashier
 	IsActive    bool      `json:"is_active" db:"is_active"`
 	LastLoginAt *time.Time `json:"last_login_at,omitempty" db:"last_login_at"`
 }

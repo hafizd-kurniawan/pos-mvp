@@ -20,6 +20,7 @@ type UserRepository interface {
 	Delete(id uuid.UUID) error
 	Search(query string, page, limit int) ([]*model.User, int, error)
 	GetByRole(role string, page, limit int) ([]*model.User, int, error)
+	UpdateLastLogin(id uuid.UUID) error
 }
 
 type userRepository struct {
@@ -204,4 +205,10 @@ func (r *userRepository) GetByRole(role string, page, limit int) ([]*model.User,
 	}
 
 	return users, total, nil
+}
+
+func (r *userRepository) UpdateLastLogin(id uuid.UUID) error {
+	query := `UPDATE users SET last_login_at = NOW(), updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL`
+	_, err := r.db.Exec(query, id)
+	return err
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hafizd-kurniawan/pos-mvp/internal/config"
@@ -37,6 +38,14 @@ func main() {
 	transactionRepo := repository.NewTransactionRepository(db)
 	receiptRepo := repository.NewReceiptRepository(db)
 	userRepo := repository.NewUserRepository(db)
+	
+	// New repositories for advanced features
+	sessionRepo := repository.NewSessionRepository(db)
+	activityLogRepo := repository.NewActivityLogRepository(db)
+	sparepartRepo := repository.NewSparepartRepository(db)
+	stockMovementRepo := repository.NewStockMovementRepository(db)
+	workOrderRepo := repository.NewWorkOrderRepository(db)
+	workOrderItemRepo := repository.NewWorkOrderItemRepository(db)
 
 	// Initialize services
 	carService := service.NewCarService(carRepo)
@@ -44,6 +53,11 @@ func main() {
 	transactionService := service.NewTransactionService(transactionRepo, carRepo, customerRepo, receiptRepo)
 	receiptService := service.NewReceiptService(receiptRepo)
 	userService := service.NewUserService(userRepo)
+	
+	// New services for advanced features
+	authService := service.NewAuthService(cfg.JWT.Secret, 24*time.Hour)
+	sparepartService := service.NewSparepartService(sparepartRepo, stockMovementRepo, activityLogRepo)
+	workOrderService := service.NewWorkOrderService(workOrderRepo, workOrderItemRepo, sparepartRepo, stockMovementRepo, activityLogRepo)
 
 	// Initialize handlers
 	carHandler := handler.NewCarHandler(carService)
@@ -51,6 +65,11 @@ func main() {
 	transactionHandler := handler.NewTransactionHandler(transactionService)
 	receiptHandler := handler.NewReceiptHandler(receiptService)
 	userHandler := handler.NewUserHandler(userService)
+	
+	// New handlers for advanced features
+	authHandler := handler.NewAuthHandler(authService, userRepo, sessionRepo, activityLogRepo)
+	sparepartHandler := handler.NewSparepartHandler(sparepartService)
+	workOrderHandler := handler.NewWorkOrderHandler(workOrderService)
 
 	// Setup Gin router
 	r := gin.Default()
@@ -80,6 +99,15 @@ func main() {
 	// API routes
 	api := r.Group("/api")
 	{
+		// Authentication routes
+		auth := api.Group("/auth")
+		{
+			auth.POST("/login", authHandler.Login)
+			auth.POST("/logout", authHandler.Logout)
+			auth.GET("/validate", authHandler.ValidateToken)
+			auth.GET("/activity/:user_id", authHandler.GetActivityLogs)
+		}
+
 		// Car routes
 		cars := api.Group("/cars")
 		{
@@ -141,6 +169,39 @@ func main() {
 			users.GET("/search", userHandler.SearchUsers)
 			users.GET("/role/:role", userHandler.GetUsersByRole)
 			users.POST("/:id/login", userHandler.UpdateLastLogin)
+		}
+
+		// Sparepart routes
+		spareparts := api.Group("/spareparts")
+		{
+			spareparts.POST("", sparepartHandler.CreateSparepart)
+			spareparts.GET("", sparepartHandler.GetAllSpareparts)
+			spareparts.GET("/:id", sparepartHandler.GetSparepart)
+			spareparts.PUT("/:id", sparepartHandler.UpdateSparepart)
+			spareparts.DELETE("/:id", sparepartHandler.DeleteSparepart)
+			spareparts.GET("/part-number", sparepartHandler.GetSparepartByPartNumber)
+			spareparts.GET("/barcode", sparepartHandler.GetSparepartByBarcode)
+			spareparts.GET("/search", sparepartHandler.SearchSpareparts)
+			spareparts.GET("/low-stock", sparepartHandler.GetLowStockSpareparts)
+			spareparts.PUT("/:id/stock", sparepartHandler.UpdateStock)
+			spareparts.GET("/:id/movements", sparepartHandler.GetStockMovements)
+		}
+
+		// Work Order routes
+		workOrders := api.Group("/work-orders")
+		{
+			workOrders.POST("", workOrderHandler.CreateWorkOrder)
+			workOrders.GET("", workOrderHandler.GetAllWorkOrders)
+			workOrders.GET("/:id", workOrderHandler.GetWorkOrder)
+			workOrders.PUT("/:id", workOrderHandler.UpdateWorkOrder)
+			workOrders.DELETE("/:id", workOrderHandler.DeleteWorkOrder)
+			workOrders.GET("/number", workOrderHandler.GetWorkOrderByNumber)
+			workOrders.GET("/car/:car_id", workOrderHandler.GetWorkOrdersByCarID)
+			workOrders.GET("/mechanic/:mechanic_id", workOrderHandler.GetWorkOrdersByMechanicID)
+			workOrders.GET("/status/:status", workOrderHandler.GetWorkOrdersByStatus)
+			workOrders.PUT("/:id/progress", workOrderHandler.UpdateWorkOrderProgress)
+			workOrders.POST("/:id/items", workOrderHandler.AddWorkOrderItem)
+			workOrders.GET("/:id/items", workOrderHandler.GetWorkOrderItems)
 		}
 	}
 

@@ -35,18 +35,46 @@ func (r *customerRepository) Create(customer *model.Customer) error {
 	customer.CreatedAt = time.Now()
 	customer.UpdatedAt = time.Now()
 
-	query := `
-		INSERT INTO customers (id, first_name, last_name, email, phone, address, city, state, zip_code, date_of_birth, created_at, updated_at)
-		VALUES (:id, :first_name, :last_name, :email, :phone, :address, :city, :state, :zip_code, :date_of_birth, :created_at, :updated_at)`
+	// Generate customer code
+	customerCode, err := r.generateCustomerCode()
+	if err != nil {
+		return err
+	}
 
-	_, err := r.db.NamedExec(query, customer)
+	_, err = r.db.Exec(`
+		INSERT INTO customers (id, first_name, last_name, email, phone, address, city, state, zip_code, date_of_birth, customer_code, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+		customer.ID, customer.FirstName, customer.LastName, customer.Email, customer.Phone,
+		customer.Address, customer.City, customer.State, customer.ZipCode, customer.DateOfBirth,
+		customerCode, customer.CreatedAt, customer.UpdatedAt)
+
+	if err == nil {
+		customer.CustomerCode = customerCode
+	}
+
 	return err
+}
+
+func (r *customerRepository) generateCustomerCode() (string, error) {
+	// Get the count of customers created
+	var count int
+	query := `SELECT COUNT(*) FROM customers WHERE deleted_at IS NULL`
+	err := r.db.Get(&count, query)
+	if err != nil {
+		return "", err
+	}
+
+	// Increment count and format with leading zeros
+	count++
+	customerCode := fmt.Sprintf("CR-%04d", count)
+
+	return customerCode, nil
 }
 
 func (r *customerRepository) GetByID(id uuid.UUID) (*model.Customer, error) {
 	var customer model.Customer
 	query := `
-		SELECT id, first_name, last_name, email, phone, address, city, state, zip_code, date_of_birth,
+		SELECT id, customer_code, first_name, last_name, email, phone, address, city, state, zip_code, date_of_birth,
 		       created_at, updated_at, deleted_at
 		FROM customers 
 		WHERE id = $1 AND deleted_at IS NULL`
@@ -64,7 +92,7 @@ func (r *customerRepository) GetByID(id uuid.UUID) (*model.Customer, error) {
 func (r *customerRepository) GetAll(limit, offset int) ([]model.Customer, error) {
 	var customers []model.Customer
 	query := `
-		SELECT id, first_name, last_name, email, phone, address, city, state, zip_code, date_of_birth,
+		SELECT id, customer_code, first_name, last_name, email, phone, address, city, state, zip_code, date_of_birth,
 		       created_at, updated_at, deleted_at
 		FROM customers 
 		WHERE deleted_at IS NULL
