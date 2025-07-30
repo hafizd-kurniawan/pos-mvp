@@ -18,22 +18,10 @@ class AppTheme {
       
       // AppBar theme - Modern gradient design
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(AppConstants.primaryColorValue),
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(AppConstants.primaryColorValue),
-                Color(AppConstants.primaryDarkValue),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
         titleTextStyle: TextStyle(
           fontSize: 22.sp,
           fontWeight: FontWeight.w700,
@@ -329,3 +317,4 @@ extension LinearGradientExtension on LinearGradient {
       stops: stops,
     );
   }
+}
