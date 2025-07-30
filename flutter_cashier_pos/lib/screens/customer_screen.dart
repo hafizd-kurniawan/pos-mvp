@@ -612,8 +612,6 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
     );
   }
 }
-    }
-  }
 
   Future<void> _showAddCustomerDialog() async {
     final result = await showDialog<Customer>(
