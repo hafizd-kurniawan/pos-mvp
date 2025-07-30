@@ -43,19 +43,19 @@ class MyApp extends ConsumerWidget {
         builder: (context, state) => const DashboardScreen(),
         routes: [
           GoRoute(
-            path: '/sales',
+            path: 'sales',
             builder: (context, state) => const SalesScreen(),
           ),
           GoRoute(
-            path: '/customers',
+            path: 'customers',
             builder: (context, state) => const CustomerScreen(),
           ),
           GoRoute(
-            path: '/inventory',
+            path: 'inventory',
             builder: (context, state) => const InventoryScreen(),
           ),
           GoRoute(
-            path: '/invoices',
+            path: 'invoices',
             builder: (context, state) => const InvoiceScreen(),
           ),
         ],
