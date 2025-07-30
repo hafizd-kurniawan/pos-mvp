@@ -89,172 +89,332 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.surfaceColor,
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(
-              Icons.point_of_sale,
-              size: 24.sp,
-              color: Colors.white,
-            ),
-            SizedBox(width: 8.w),
-            Text(
-              'Car Showroom POS',
-              style: TextStyle(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.w600,
+            Container(
+              width: 32.w,
+              height: 32.h,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8.r),
               ),
+              child: Icon(
+                Icons.storefront_rounded,
+                size: 20.sp,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Car Showroom POS',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                Text(
+                  'Cashier Dashboard',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.8),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         actions: [
-          // User info
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
+          // User info with modern design
+          Container(
+            margin: EdgeInsets.only(right: 16.w),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(25.r),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 CircleAvatar(
-                  radius: 18.r,
-                  backgroundColor: Colors.white.withOpacity(0.2),
+                  radius: 16.r,
+                  backgroundColor: Colors.white,
                   child: Text(
                     _currentUser?.name.substring(0, 1).toUpperCase() ?? 'C',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryColor,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
                 SizedBox(width: 8.w),
-                Flexible(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _currentUser?.name ?? 'Cashier',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _currentUser?.name ?? 'Cashier',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
                       ),
-                      Text(
-                        _currentUser?.roleDisplayName ?? 'Cashier',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
-                          fontSize: 12.sp,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      _currentUser?.roleDisplayName ?? 'Cashier',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           
-          // Logout button
-          IconButton(
-            icon: Icon(
-              Icons.logout,
-              color: Colors.white,
-              size: 24.sp,
+          // Logout button with modern design
+          Container(
+            margin: EdgeInsets.only(right: 16.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12.r),
             ),
-            onPressed: _handleLogout,
+            child: IconButton(
+              icon: Icon(
+                Icons.logout_rounded,
+                color: Colors.white,
+                size: 20.sp,
+              ),
+              onPressed: _handleLogout,
+            ),
           ),
         ],
       ),
       
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.all(24.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Welcome section
+              // Modern welcome section
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(20.w),
+                padding: EdgeInsets.all(32.w),
                 decoration: BoxDecoration(
-                  gradient: AppTheme.primaryGradient,
-                  borderRadius: BorderRadius.circular(12.r),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFFFFFFF),
+                      Color(0xFFF8FAFC),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 60.w,
+                          height: 60.h,
+                          decoration: BoxDecoration(
+                            gradient: AppTheme.primaryGradient,
+                            borderRadius: BorderRadius.circular(16.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.waving_hand_rounded,
+                            size: 28.sp,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 20.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome back,',
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 4.h),
+                              Text(
+                                '${_currentUser?.name ?? 'Cashier'}! 👋',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.grey.shade900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 24.h),
                     Text(
-                      'Welcome back, ${_currentUser?.name ?? 'Cashier'}!',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.bold,
+                      'Ready to serve customers and manage vehicle sales with our modern POS system',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey.shade600,
+                        height: 1.5,
                       ),
                     ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      'Ready to serve customers and manage sales',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16.sp,
-                      ),
-                    ),
-                    SizedBox(height: 16.h),
+                    SizedBox(height: 20.h),
                     Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 6.h,
+                        horizontal: 16.w,
+                        vertical: 10.h,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20.r),
-                      ),
-                      child: Text(
-                        'Today: ${DateTime.now().toString().split(' ')[0]}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
+                        color: AppTheme.primaryColor.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withOpacity(0.2),
+                          width: 1,
                         ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 16.sp,
+                            color: AppTheme.primaryColor,
+                          ),
+                          SizedBox(width: 8.w),
+                          Text(
+                            'Today: ${DateTime.now().toString().split(' ')[0]}',
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
               
-              SizedBox(height: 24.h),
+              SizedBox(height: 32.h),
               
-              // Stats cards
-              const DashboardStatsCard(),
-              
-              SizedBox(height: 24.h),
-              
-              // Quick actions
-              Text(
-                'Quick Actions',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+              // Stats section with modern title
+              Row(
+                children: [
+                  Container(
+                    width: 4.w,
+                    height: 24.h,
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Text(
+                    'Today\'s Overview',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: Colors.grey.shade900,
+                    ),
+                  ),
+                ],
               ),
               
-              SizedBox(height: 16.h),
+              SizedBox(height: 20.h),
+              
+              const DashboardStatsCard(),
+              
+              SizedBox(height: 32.h),
+              
+              // Quick actions section
+              Row(
+                children: [
+                  Container(
+                    width: 4.w,
+                    height: 24.h,
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.successGradient,
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Text(
+                    'Quick Actions',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: Colors.grey.shade900,
+                    ),
+                  ),
+                ],
+              ),
+              
+              SizedBox(height: 20.h),
               
               const QuickActionsGrid(),
               
-              SizedBox(height: 24.h),
+              SizedBox(height: 32.h),
               
-              // Recent transactions
-              Text(
-                'Recent Transactions',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+              // Recent transactions section
+              Row(
+                children: [
+                  Container(
+                    width: 4.w,
+                    height: 24.h,
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.warningGradient,
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Text(
+                    'Recent Activity',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: Colors.grey.shade900,
+                    ),
+                  ),
+                ],
               ),
               
-              SizedBox(height: 16.h),
+              SizedBox(height: 20.h),
               
               const RecentTransactionsList(),
             ],
@@ -262,32 +422,51 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
       ),
       
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedBottomNavIndex,
-        onTap: _onBottomNavTap,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard, size: 24.sp),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.sell, size: 24.sp),
-            label: 'Sales',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people, size: 24.sp),
-            label: 'Customers',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.directions_car, size: 24.sp),
-            label: 'Cars',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt, size: 24.sp),
-            label: 'Invoices',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedBottomNavIndex,
+          onTap: _onBottomNavTap,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: AppTheme.primaryColor,
+          unselectedItemColor: Colors.grey.shade500,
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_rounded, size: 24.sp),
+              activeIcon: Icon(Icons.dashboard_rounded, size: 26.sp),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.sell_rounded, size: 24.sp),
+              activeIcon: Icon(Icons.sell_rounded, size: 26.sp),
+              label: 'Sales',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.people_rounded, size: 24.sp),
+              activeIcon: Icon(Icons.people_rounded, size: 26.sp),
+              label: 'Customers',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.directions_car_rounded, size: 24.sp),
+              activeIcon: Icon(Icons.directions_car_rounded, size: 26.sp),
+              label: 'Cars',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.receipt_rounded, size: 24.sp),
+              activeIcon: Icon(Icons.receipt_rounded, size: 26.sp),
+              label: 'Invoices',
+            ),
+          ],
+        ),
       ),
     );
   }

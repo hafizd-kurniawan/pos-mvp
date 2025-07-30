@@ -11,45 +11,42 @@ class QuickActionsGrid extends StatelessWidget {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: 12.w,
-      mainAxisSpacing: 12.h,
-      childAspectRatio: 1.4,
+      crossAxisCount: 4, // Changed from 2 to 4 as requested
+      crossAxisSpacing: 16.w,
+      mainAxisSpacing: 16.h,
+      childAspectRatio: 1.1,
       children: [
         _QuickActionCard(
-          icon: Icons.sell,
+          icon: Icons.sell_rounded,
           title: 'New Sale',
-          subtitle: 'Sell vehicle to customer',
-          color: AppTheme.successColor,
+          subtitle: 'Sell vehicle',
+          gradient: AppTheme.successGradient,
           onTap: () => context.go('/dashboard/sales'),
         ),
         _QuickActionCard(
-          icon: Icons.shopping_cart,
+          icon: Icons.shopping_cart_rounded,
           title: 'Purchase',
-          subtitle: 'Buy from customer',
-          color: Colors.orange,
+          subtitle: 'Buy vehicle',
+          gradient: AppTheme.warningGradient,
           onTap: () => context.go('/dashboard/purchase'),
         ),
         _QuickActionCard(
-          icon: Icons.people,
+          icon: Icons.people_rounded,
           title: 'Customers',
-          subtitle: 'Manage customers',
-          color: AppTheme.infoColor,
+          subtitle: 'Manage clients',
+          gradient: AppTheme.primaryGradient,
           onTap: () => context.go('/dashboard/customers'),
         ),
         _QuickActionCard(
-          icon: Icons.directions_car,
+          icon: Icons.directions_car_rounded,
           title: 'Inventory',
-          subtitle: 'View available cars',
-          color: AppTheme.warningColor,
+          subtitle: 'View vehicles',
+          gradient: const LinearGradient(
+            colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           onTap: () => context.go('/dashboard/inventory'),
-        ),
-        _QuickActionCard(
-          icon: Icons.receipt,
-          title: 'Invoices',
-          subtitle: 'View all invoices',
-          color: Colors.purple,
-          onTap: () => context.go('/dashboard/invoices'),
         ),
       ],
     );
@@ -60,62 +57,85 @@ class _QuickActionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color color;
+  final LinearGradient gradient;
   final VoidCallback onTap;
 
   const _QuickActionCard({
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.color,
+    required this.gradient,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.r),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+            color: gradient.colors.first.withOpacity(0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12.r),
-        child: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 48.w,
-                height: 48.h,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(24.r),
-                ),
-                child: Icon(
-                  icon,
-                  size: 24.sp,
-                  color: color,
-                ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20.r),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20.r),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: gradient,
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(20.w),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 56.w,
+                    height: 56.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 28.sp,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: 0.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withOpacity(0.8),
+                      letterSpacing: 0.1,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              SizedBox(height: 12.h),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+            ),
           ),
         ),
       ),

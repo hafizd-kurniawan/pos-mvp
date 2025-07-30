@@ -21,11 +21,14 @@ class AppConstants {
   static const double tabletBreakpoint = 768;
   static const double desktopBreakpoint = 1024;
   
-  // Colors (matching modern POS design)
-  static const int primaryColorValue = 0xFF1565C0; // Deep Blue
-  static const int accentColorValue = 0xFF00E676; // Green for success
-  static const int errorColorValue = 0xFFE53935; // Red for errors
-  static const int warningColorValue = 0xFFFFA726; // Orange for warnings
+  // Colors (modern gradient-based design)
+  static const int primaryColorValue = 0xFF6366F1; // Modern indigo
+  static const int primaryDarkValue = 0xFF4F46E5; // Deeper indigo
+  static const int accentColorValue = 0xFF10B981; // Modern emerald
+  static const int errorColorValue = 0xFFEF4444; // Modern red
+  static const int warningColorValue = 0xFFF59E0B; // Modern amber
+  static const int surfaceColorValue = 0xFFF8FAFC; // Light background
+  static const int cardColorValue = 0xFFFFFFFF; // Pure white for cards
   
   // Animation durations
   static const Duration shortAnimation = Duration(milliseconds: 200);

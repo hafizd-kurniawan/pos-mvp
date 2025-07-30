@@ -90,23 +90,144 @@ class _MechanicDashboardScreenState extends ConsumerState<MechanicDashboardScree
     ).length;
 
     return Scaffold(
+      backgroundColor: AppTheme.surfaceColor,
       appBar: AppBar(
-        title: const Text('Mechanic Dashboard'),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
+        title: Row(
+          children: [
+            Container(
+              width: 32.w,
+              height: 32.h,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Icon(
+                Icons.build_rounded,
+                size: 20.sp,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Workshop Dashboard',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                Text(
+                  'Mechanic Portal',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.8),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadMyWorkOrders,
+          // User info with modern design
+          Container(
+            margin: EdgeInsets.only(right: 16.w),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(25.r),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 16.r,
+                  backgroundColor: Colors.white,
+                  child: Text(
+                    user?.name.substring(0, 1).toUpperCase() ?? 'M',
+                    style: TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.name ?? 'Mechanic',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'Mechanic',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await _authService.logout();
-              if (mounted) {
-                Navigator.pushReplacementNamed(context, '/login');
-              }
-            },
+          
+          // Refresh button
+          Container(
+            margin: EdgeInsets.only(right: 8.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.refresh_rounded,
+                color: Colors.white,
+                size: 20.sp,
+              ),
+              onPressed: _loadMyWorkOrders,
+            ),
+          ),
+          
+          // Logout button
+          Container(
+            margin: EdgeInsets.only(right: 16.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.logout_rounded,
+                color: Colors.white,
+                size: 20.sp,
+              ),
+              onPressed: () async {
+                await _authService.logout();
+                if (mounted) {
+                  Navigator.pushReplacementNamed(context, '/login');
+                }
+              },
+            ),
           ),
         ],
       ),
@@ -114,61 +235,118 @@ class _MechanicDashboardScreenState extends ConsumerState<MechanicDashboardScree
         isLoading: _isLoading,
         child: RefreshIndicator(
           onRefresh: _loadMyWorkOrders,
+          color: AppTheme.primaryColor,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(24.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Welcome Card
-                Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(20.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                // Modern welcome card
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(32.w),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFFFFFFF),
+                        Color(0xFFF8FAFC),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 80.w,
+                        height: 80.h,
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.primaryGradient,
+                          borderRadius: BorderRadius.circular(20.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primaryColor.withOpacity(0.3),
+                              blurRadius: 15,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.engineering_rounded,
+                          size: 40.sp,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(width: 24.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CircleAvatar(
-                              radius: 30.r,
-                              backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                              child: Icon(
-                                Icons.build,
-                                size: 30.sp,
-                                color: AppTheme.primaryColor,
+                            Text(
+                              'Welcome back,',
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            SizedBox(width: 16.w),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Welcome back, ${user?.name ?? 'Mechanic'}!',
-                                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4.h),
-                                  Text(
-                                    'Mechanic Workshop',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
+                            SizedBox(height: 4.h),
+                            Text(
+                              '${user?.name ?? 'Mechanic'}! 🔧',
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: Colors.grey.shade900,
+                              ),
+                            ),
+                            SizedBox(height: 8.h),
+                            Text(
+                              'Professional Automotive Workshop',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
 
+                SizedBox(height: 32.h),
+
+                // Modern statistics section
+                Row(
+                  children: [
+                    Container(
+                      width: 4.w,
+                      height: 24.h,
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.primaryGradient,
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Text(
+                      'Workshop Statistics',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: Colors.grey.shade900,
+                      ),
+                    ),
+                  ],
+                ),
+                
                 SizedBox(height: 20.h),
 
-                // Statistics Cards
                 ResponsiveRowColumn(
                   layout: ResponsiveBreakpoints.of(context).largerThan(MOBILE)
                       ? ResponsiveRowColumnType.ROW
@@ -177,129 +355,164 @@ class _MechanicDashboardScreenState extends ConsumerState<MechanicDashboardScree
                   children: [
                     ResponsiveRowColumnItem(
                       rowFlex: 1,
-                      child: _buildStatCard(
+                      child: _buildModernStatCard(
                         'Pending Orders',
                         pendingOrders.toString(),
-                        Icons.pending_actions,
-                        AppTheme.warningColor,
+                        Icons.pending_actions_rounded,
+                        AppTheme.warningGradient,
                       ),
                     ),
                     ResponsiveRowColumnItem(
                       rowFlex: 1,
-                      child: _buildStatCard(
+                      child: _buildModernStatCard(
                         'In Progress',
                         inProgressOrders.toString(),
-                        Icons.build,
-                        AppTheme.primaryColor,
+                        Icons.build_circle_rounded,
+                        AppTheme.primaryGradient,
                       ),
                     ),
                     ResponsiveRowColumnItem(
                       rowFlex: 1,
-                      child: _buildStatCard(
+                      child: _buildModernStatCard(
                         'Completed Today',
                         completedToday.toString(),
-                        Icons.check_circle,
-                        AppTheme.successColor,
+                        Icons.check_circle_rounded,
+                        AppTheme.successGradient,
                       ),
                     ),
                   ],
                 ),
 
-                SizedBox(height: 24.h),
+                SizedBox(height: 32.h),
 
-                // Work Orders Section
-                Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'My Work Orders',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.refresh),
-                              onPressed: _loadMyWorkOrders,
-                            ),
-                          ],
+                // Work Orders Section with modern design
+                Row(
+                  children: [
+                    Container(
+                      width: 4.w,
+                      height: 24.h,
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.successGradient,
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Text(
+                      'My Work Orders',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: Colors.grey.shade900,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.refresh_rounded,
+                          color: AppTheme.primaryColor,
+                          size: 20.sp,
                         ),
-                        
-                        SizedBox(height: 16.h),
+                        onPressed: _loadMyWorkOrders,
+                      ),
+                    ),
+                  ],
+                ),
+                
+                SizedBox(height: 20.h),
 
-                        if (_errorMessage != null)
-                          Container(
-                            padding: EdgeInsets.all(12.w),
-                            decoration: BoxDecoration(
-                              color: AppTheme.errorColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8.r),
-                              border: Border.all(
-                                color: AppTheme.errorColor.withOpacity(0.5),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  color: AppTheme.errorColor,
-                                  size: 20.sp,
-                                ),
-                                SizedBox(width: 8.w),
-                                Expanded(
-                                  child: Text(
-                                    _errorMessage!,
-                                    style: TextStyle(
-                                      color: AppTheme.errorColor,
-                                      fontSize: 14.sp,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        else if (_myWorkOrders.isEmpty)
-                          Container(
-                            padding: EdgeInsets.all(40.w),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.work_off,
-                                  size: 64.sp,
-                                  color: Colors.grey.shade400,
-                                ),
-                                SizedBox(height: 16.h),
-                                Text(
-                                  'No work orders assigned',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                SizedBox(height: 8.h),
-                                Text(
-                                  'You currently have no work orders assigned to you.',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey.shade500,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          )
-                        else
-                          Column(
-                            children: _myWorkOrders.map((workOrder) {
-                              return _buildWorkOrderCard(workOrder);
-                            }).toList(),
+                if (_errorMessage != null)
+                  Container(
+                    padding: EdgeInsets.all(20.w),
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.errorGradient.scale(0.1),
+                      borderRadius: BorderRadius.circular(16.r),
+                      border: Border.all(
+                        color: AppTheme.errorColor.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48.w,
+                          height: 48.h,
+                          decoration: BoxDecoration(
+                            color: AppTheme.errorColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12.r),
                           ),
+                          child: Icon(
+                            Icons.error_outline_rounded,
+                            color: AppTheme.errorColor,
+                            size: 24.sp,
+                          ),
+                        ),
+                        SizedBox(width: 16.w),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(
+                              color: AppTheme.errorColor,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
+                  )
+                else if (_myWorkOrders.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(48.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20.r),
+                      boxShadow: AppTheme.modernCardShadow,
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 80.w,
+                          height: 80.h,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(20.r),
+                          ),
+                          child: Icon(
+                            Icons.work_off_rounded,
+                            size: 40.sp,
+                            color: Colors.grey.shade400,
+                          ),
+                        ),
+                        SizedBox(height: 24.h),
+                        Text(
+                          'No work orders assigned',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          'You currently have no work orders assigned to you.\nCheck back later for new assignments.',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey.shade500,
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Column(
+                    children: _myWorkOrders.map((workOrder) {
+                      return _buildModernWorkOrderCard(workOrder);
+                    }).toList(),
                   ),
-                ),
               ],
             ),
           ),
@@ -308,75 +521,106 @@ class _MechanicDashboardScreenState extends ConsumerState<MechanicDashboardScree
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildModernStatCard(String title, String value, IconData icon, LinearGradient gradient) {
     return Container(
-      margin: EdgeInsets.all(4.w),
-      child: Card(
-        elevation: 2,
-        child: Container(
-          padding: EdgeInsets.all(20.w),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.r),
-            gradient: LinearGradient(
-              colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+      margin: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
+        color: Colors.white,
+        boxShadow: AppTheme.modernCardShadow,
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(24.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 48.w,
+                  height: 48.h,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(14.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: gradient.colors.first.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 24.sp,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 32.sp,
-                color: color,
+            SizedBox(height: 20.h),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: Colors.grey.shade900,
+                letterSpacing: -0.5,
               ),
-              SizedBox(height: 12.h),
-              Text(
-                value,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              title.toLowerCase(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.grey.shade500,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.3,
               ),
-              SizedBox(height: 4.h),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildWorkOrderCard(WorkOrder workOrder) {
-    Color statusColor;
+  Widget _buildModernWorkOrderCard(WorkOrder workOrder) {
+    LinearGradient statusGradient;
     switch (workOrder.status) {
       case 'pending':
-        statusColor = AppTheme.warningColor;
+        statusGradient = AppTheme.warningGradient;
         break;
       case 'in_progress':
-        statusColor = AppTheme.primaryColor;
+        statusGradient = AppTheme.primaryGradient;
         break;
       case 'completed':
-        statusColor = AppTheme.successColor;
+        statusGradient = AppTheme.successGradient;
         break;
       case 'cancelled':
-        statusColor = AppTheme.errorColor;
+        statusGradient = AppTheme.errorGradient;
         break;
       default:
-        statusColor = Colors.grey;
+        statusGradient = const LinearGradient(colors: [Colors.grey, Colors.grey]);
     }
 
-    return Card(
-      margin: EdgeInsets.only(bottom: 12.h),
+    return Container(
+      margin: EdgeInsets.only(bottom: 16.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: AppTheme.modernCardShadow,
+      ),
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(24.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -389,100 +633,168 @@ class _MechanicDashboardScreenState extends ConsumerState<MechanicDashboardScree
                       Text(
                         workOrder.workOrderNumber,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.grey.shade900,
                         ),
                       ),
-                      SizedBox(height: 4.h),
+                      SizedBox(height: 8.h),
                       Text(
                         workOrder.description,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey.shade600,
+                          height: 1.4,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
+                SizedBox(width: 16.w),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16.r),
-                    border: Border.all(color: statusColor.withOpacity(0.5)),
+                    gradient: statusGradient.scale(0.1),
+                    borderRadius: BorderRadius.circular(20.r),
+                    border: Border.all(
+                      color: statusGradient.colors.first.withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
                   child: Text(
                     workOrder.statusDisplayName,
                     style: TextStyle(
-                      color: statusColor,
+                      color: statusGradient.colors.first,
                       fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
               ],
             ),
 
-            SizedBox(height: 12.h),
+            SizedBox(height: 20.h),
 
-            // Progress bar
-            Row(
-              children: [
-                Text(
-                  'Progress: ${workOrder.progress}%',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(width: 8.w),
-                Expanded(
-                  child: LinearProgressIndicator(
-                    value: workOrder.progress / 100,
-                    backgroundColor: Colors.grey.shade300,
-                    valueColor: AlwaysStoppedAnimation<Color>(statusColor),
-                  ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 12.h),
-
-            // Progress buttons (for in-progress orders)
-            if (workOrder.isInProgress)
-              Wrap(
-                spacing: 8.w,
+            // Modern progress bar
+            Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Column(
                 children: [
-                  _buildProgressButton(workOrder, 25, '25%'),
-                  _buildProgressButton(workOrder, 50, '50%'),
-                  _buildProgressButton(workOrder, 75, '75%'),
-                  _buildProgressButton(workOrder, 100, 'Complete'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Progress',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                      Text(
+                        '${workOrder.progress}%',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: statusGradient.colors.first,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12.h),
+                  Container(
+                    height: 8.h,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(4.r),
+                    ),
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: workOrder.progress / 100,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: statusGradient,
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
+            ),
 
-            SizedBox(height: 12.h),
+            // Progress buttons (for in-progress orders)
+            if (workOrder.isInProgress) ...[
+              SizedBox(height: 20.h),
+              Wrap(
+                spacing: 12.w,
+                runSpacing: 8.h,
+                children: [
+                  _buildModernProgressButton(workOrder, 25, '25%'),
+                  _buildModernProgressButton(workOrder, 50, '50%'),
+                  _buildModernProgressButton(workOrder, 75, '75%'),
+                  _buildModernProgressButton(workOrder, 100, 'Complete'),
+                ],
+              ),
+            ],
+
+            SizedBox(height: 20.h),
 
             // Cost information
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Labor: Rp ${workOrder.laborCost.toStringAsFixed(0)}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+            Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withOpacity(0.1),
                 ),
-                Expanded(
-                  child: Text(
-                    'Parts: Rp ${workOrder.partsCost.toStringAsFixed(0)}',
-                    style: Theme.of(context).textTheme.bodySmall,
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCostItem('Labor Cost', workOrder.laborCost),
+                      ),
+                      Expanded(
+                        child: _buildCostItem('Parts Cost', workOrder.partsCost),
+                      ),
+                    ],
                   ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Total: Rp ${workOrder.totalCost.toStringAsFixed(0)}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  SizedBox(height: 12.h),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient.scale(0.1),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total Cost',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        Text(
+                          'Rp ${workOrder.totalCost.toStringAsFixed(0)}',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -490,18 +802,62 @@ class _MechanicDashboardScreenState extends ConsumerState<MechanicDashboardScree
     );
   }
 
-  Widget _buildProgressButton(WorkOrder workOrder, int progress, String label) {
-    return ElevatedButton(
-      onPressed: workOrder.progress < progress 
-          ? () => _updateProgress(workOrder, progress)
-          : null,
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-        minimumSize: Size(0, 32.h),
+  Widget _buildCostItem(String label, double amount) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: 4.h),
+        Text(
+          'Rp ${amount.toStringAsFixed(0)}',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: Colors.grey.shade800,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernProgressButton(WorkOrder workOrder, int progress, String label) {
+    final isEnabled = workOrder.progress < progress;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: isEnabled ? [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ] : null,
       ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 12.sp),
+      child: ElevatedButton(
+        onPressed: isEnabled ? () => _updateProgress(workOrder, progress) : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isEnabled ? AppTheme.primaryColor : Colors.grey.shade300,
+          foregroundColor: isEnabled ? Colors.white : Colors.grey.shade500,
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+          minimumSize: Size(0, 40.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          elevation: isEnabled ? 2 : 0,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.3,
+          ),
+        ),
       ),
     );
   }

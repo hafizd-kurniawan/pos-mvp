@@ -10,32 +10,32 @@ class DashboardStatsCard extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _StatCard(
+          child: _ModernStatCard(
             title: 'Today Sales',
             value: '0',
             subtitle: 'transactions',
-            icon: Icons.sell,
-            color: AppTheme.successColor,
+            icon: Icons.trending_up_rounded,
+            gradient: AppTheme.successGradient,
           ),
         ),
-        SizedBox(width: 12.w),
+        SizedBox(width: 16.w),
         Expanded(
-          child: _StatCard(
+          child: _ModernStatCard(
             title: 'Available Cars',
             value: '0',
             subtitle: 'vehicles',
-            icon: Icons.directions_car,
-            color: AppTheme.infoColor,
+            icon: Icons.directions_car_rounded,
+            gradient: AppTheme.primaryGradient,
           ),
         ),
-        SizedBox(width: 12.w),
+        SizedBox(width: 16.w),
         Expanded(
-          child: _StatCard(
+          child: _ModernStatCard(
             title: 'Pending',
             value: '0',
             subtitle: 'invoices',
-            icon: Icons.pending,
-            color: AppTheme.warningColor,
+            icon: Icons.pending_actions_rounded,
+            gradient: AppTheme.warningGradient,
           ),
         ),
       ],
@@ -43,69 +43,85 @@ class DashboardStatsCard extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _ModernStatCard extends StatelessWidget {
   final String title;
   final String value;
   final String subtitle;
   final IconData icon;
-  final Color color;
+  final LinearGradient gradient;
 
-  const _StatCard({
+  const _ModernStatCard({
     required this.title,
     required this.value,
     required this.subtitle,
     required this.icon,
-    required this.color,
+    required this.gradient,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.r),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
+        color: Colors.white,
+        boxShadow: AppTheme.modernCardShadow,
       ),
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(24.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                    ),
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.all(8.w),
+                  width: 48.w,
+                  height: 48.h,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8.r),
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(14.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: gradient.colors.first.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Icon(
                     icon,
-                    size: 20.sp,
-                    color: color,
+                    size: 24.sp,
+                    color: Colors.white,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: 20.h),
             Text(
               value,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
+                fontWeight: FontWeight.w800,
+                color: Colors.grey.shade900,
+                letterSpacing: -0.5,
               ),
             ),
+            SizedBox(height: 4.h),
             Text(
               subtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Colors.grey.shade500,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.3,
               ),
             ),
           ],
