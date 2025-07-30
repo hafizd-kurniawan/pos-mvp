@@ -737,7 +737,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
 
   void _openWhatsApp(Map<String, dynamic> invoice) {
     try {
-      final customerPhone = _selectedCustomer?.phoneNumber ?? '';
+      final customerPhone = _selectedCustomer?.phone ?? '';
       final message = 'Halo! Invoice pembelian kendaraan Anda telah siap.\n\n'
                      'No. Invoice: ${invoice['invoice_number']}\n'
                      'Total: Rp ${_formatCurrency(invoice['total_amount'])}\n\n'

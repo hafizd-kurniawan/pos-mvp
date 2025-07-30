@@ -54,10 +54,7 @@ class _InlineCustomerCreationWidgetState extends State<InlineCustomerCreationWid
 
     try {
       final response = await _customerService.createCustomer(
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim().isNotEmpty 
-            ? _lastNameController.text.trim() 
-            : 'N/A', // Backend requires last_name
+        name: '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
         phone: _phoneController.text.trim(),
         email: _emailController.text.trim(),
         address: _addressController.text.trim(),
