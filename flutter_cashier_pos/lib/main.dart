@@ -12,7 +12,7 @@ import 'screens/customer_screen.dart';
 import 'screens/inventory_screen.dart';
 import 'screens/invoice_screen.dart';
 import 'utils/app_theme.dart';
-import 'utils/app_constants.dart';
+import 'constants/app_constants.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -64,7 +64,7 @@ class MyApp extends ConsumerWidget {
     redirect: (context, state) {
       final authService = AuthService();
       final isLoggedIn = authService.isLoggedIn();
-      final isLoggingIn = state.location == '/login';
+      final isLoggingIn = state.uri.path == '/login';
       
       if (!isLoggedIn && !isLoggingIn) return '/login';
       if (isLoggedIn && isLoggingIn) return '/dashboard';

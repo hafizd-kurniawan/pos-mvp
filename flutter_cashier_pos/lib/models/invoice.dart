@@ -1,3 +1,6 @@
+import 'customer.dart';
+import 'car.dart';
+
 class Invoice {
   final String id;
   final String invoiceNumber;

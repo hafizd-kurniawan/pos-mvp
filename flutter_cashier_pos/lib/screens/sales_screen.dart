@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:go_router/go_router.dart';
 import '../models/car.dart';
 import '../models/customer.dart';
@@ -318,7 +319,7 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: ResponsiveBreakpoints.of(context).isTablet ? 2 : 1,
+                      crossAxisCount: ResponsiveBreakpoints.of(context).largerThan(MOBILE) ? 2 : 1,
                       crossAxisSpacing: 12.w,
                       mainAxisSpacing: 12.h,
                       childAspectRatio: 1.5,

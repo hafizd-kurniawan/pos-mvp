@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:go_router/go_router.dart';
 import '../models/car.dart';
 import '../services/car_service.dart';
@@ -377,7 +378,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   : GridView.builder(
                       padding: EdgeInsets.all(16.w),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: ResponsiveBreakpoints.of(context).isTablet ? 3 : 2,
+                        crossAxisCount: ResponsiveBreakpoints.of(context).largerThan(MOBILE) ? 3 : 2,
                         crossAxisSpacing: 12.w,
                         mainAxisSpacing: 12.h,
                         childAspectRatio: 0.75,
