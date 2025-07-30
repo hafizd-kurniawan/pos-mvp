@@ -4,9 +4,11 @@ import '../constants/app_constants.dart';
 import '../models/car.dart';
 import '../models/api_models.dart';
 import 'auth_service.dart';
+import 'logger_service.dart';
 
 class CarService {
   final AuthService _authService = AuthService();
+  final LoggerService _logger = LoggerService();
 
   // Get available cars for sale
   Future<ApiResponse<List<Car>>> getAvailableCars({
@@ -25,33 +27,46 @@ class CarService {
       final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.carsEndpoint}')
           .replace(queryParameters: queryParams);
 
+      _logger.apiCall(uri.toString(), method: 'GET');
+      final stopwatch = Stopwatch()..start();
+
       final response = await http.get(
         uri,
         headers: _authService.getAuthHeaders(),
       );
 
+      stopwatch.stop();
+      _logger.apiResponse(uri.toString(), response.statusCode, duration: stopwatch.elapsed);
+
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
-        final carsList = (data['data'] as List)
+        final carsList = (data['data'] as List? ?? [])
             .map((json) => Car.fromJson(json))
             .toList();
 
         return ApiResponse<List<Car>>(
           success: true,
-          message: data['message'],
+          message: data['message'] ?? 'Cars retrieved successfully',
           data: carsList,
           pagination: data['pagination'] != null 
               ? Pagination.fromJson(data['pagination'])
               : null,
         );
       } else {
+        final errorMessage = data['message'] ?? 'Failed to fetch cars';
+        _logger.apiError(uri.toString(), error: errorMessage, statusCode: response.statusCode, response: data);
+        
         return ApiResponse<List<Car>>(
           success: false,
-          message: data['message'] ?? 'Failed to fetch cars',
+          message: errorMessage,
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.apiError('${AppConstants.baseUrl}${AppConstants.carsEndpoint}', 
+                      error: e, stackTrace: stackTrace);
+      _logger.networkError('${AppConstants.baseUrl}${AppConstants.carsEndpoint}', 'Get cars failed: $e');
+      
       return ApiResponse<List<Car>>(
         success: false,
         message: 'Network error: $e',
@@ -62,26 +77,41 @@ class CarService {
   // Get car by ID with photos
   Future<ApiResponse<Car>> getCarById(String carId) async {
     try {
+      final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.carsEndpoint}/$carId');
+      
+      _logger.apiCall(uri.toString(), method: 'GET');
+      final stopwatch = Stopwatch()..start();
+
       final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.carsEndpoint}/$carId'),
+        uri,
         headers: _authService.getAuthHeaders(),
       );
+
+      stopwatch.stop();
+      _logger.apiResponse(uri.toString(), response.statusCode, duration: stopwatch.elapsed);
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
         return ApiResponse<Car>(
           success: true,
-          message: data['message'],
+          message: data['message'] ?? 'Car found',
           data: Car.fromJson(data['data']),
         );
       } else {
+        final errorMessage = data['message'] ?? 'Car not found';
+        _logger.apiError(uri.toString(), error: errorMessage, statusCode: response.statusCode, response: data);
+        
         return ApiResponse<Car>(
           success: false,
-          message: data['message'] ?? 'Car not found',
+          message: errorMessage,
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.apiError('${AppConstants.baseUrl}${AppConstants.carsEndpoint}/$carId', 
+                      error: e, stackTrace: stackTrace);
+      _logger.networkError('${AppConstants.baseUrl}${AppConstants.carsEndpoint}/$carId', 'Get car failed: $e');
+      
       return ApiResponse<Car>(
         success: false,
         message: 'Network error: $e',
