@@ -9,6 +9,7 @@ class AppConstants {
   static const String invoicesEndpoint = '/invoices';
   static const String photosEndpoint = '/photos';
   static const String sparepartsEndpoint = '/spareparts';
+  static const String workOrdersEndpoint = '/work-orders';
   
   // Local Storage
   static const String authBox = 'auth_box';

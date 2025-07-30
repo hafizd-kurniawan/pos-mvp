@@ -11,6 +11,7 @@ import 'screens/sales_screen.dart';
 import 'screens/customer_screen.dart';
 import 'screens/inventory_screen.dart';
 import 'screens/invoice_screen.dart';
+import 'screens/mechanic_dashboard_screen.dart';
 import 'utils/app_theme.dart';
 import 'constants/app_constants.dart';
 import 'services/auth_service.dart';
@@ -60,6 +61,10 @@ class MyApp extends ConsumerWidget {
           ),
         ],
       ),
+      GoRoute(
+        path: '/mechanic-dashboard',
+        builder: (context, state) => const MechanicDashboardScreen(),
+      ),
     ],
     redirect: (context, state) {
       final authService = AuthService();
@@ -67,7 +72,13 @@ class MyApp extends ConsumerWidget {
       final isLoggingIn = state.uri.path == '/login';
       
       if (!isLoggedIn && !isLoggingIn) return '/login';
-      if (isLoggedIn && isLoggingIn) return '/dashboard';
+      if (isLoggedIn && isLoggingIn) {
+        final user = authService.getCurrentUser();
+        if (user?.role == 'mechanic') {
+          return '/mechanic-dashboard';
+        }
+        return '/dashboard';
+      }
       
       return null;
     },

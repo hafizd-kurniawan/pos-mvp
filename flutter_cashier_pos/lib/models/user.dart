@@ -22,30 +22,43 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    // Combine first_name and last_name into name (handle nulls)
+    final firstName = json['first_name']?.toString() ?? '';
+    final lastName = json['last_name']?.toString() ?? '';
+    final fullName = '$firstName $lastName'.trim();
+    
     return User(
-      id: json['id'],
-      username: json['username'],
-      email: json['email'],
-      name: json['name'],
-      role: json['role'],
+      id: json['id']?.toString() ?? '',
+      username: json['username']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      name: fullName.isNotEmpty ? fullName : json['username']?.toString() ?? 'Unknown User',
+      role: json['role']?.toString() ?? 'cashier',
       isActive: json['is_active'] ?? true,
-      lastLogin: json['last_login'] != null 
-          ? DateTime.parse(json['last_login'])
+      lastLogin: json['last_login_at'] != null 
+          ? DateTime.tryParse(json['last_login_at'].toString())
+          : json['last_login'] != null 
+          ? DateTime.tryParse(json['last_login'].toString())
           : null,
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 
   Map<String, dynamic> toJson() {
+    // Split name back to first_name and last_name for backend compatibility
+    final nameParts = name.trim().split(' ');
+    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    
     return {
       'id': id,
       'username': username,
       'email': email,
-      'name': name,
+      'first_name': firstName,
+      'last_name': lastName,
       'role': role,
       'is_active': isActive,
-      'last_login': lastLogin?.toIso8601String(),
+      'last_login_at': lastLogin?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -71,6 +84,7 @@ class User {
   bool get isCashier => role == 'cashier';
   bool get isAdmin => role == 'admin';
   bool get isManager => role == 'manager';
+  bool get isMechanic => role == 'mechanic';
 
   @override
   String toString() {

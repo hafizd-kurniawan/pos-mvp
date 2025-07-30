@@ -47,18 +47,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (result['success'] == true) {
         final user = result['user'];
         
-        // Check if user is cashier
-        if (user.role != 'cashier') {
+        // Check if user is cashier or mechanic
+        if (user.role != 'cashier' && user.role != 'mechanic') {
           setState(() {
-            _errorMessage = 'Access denied. This app is for cashiers only.';
+            _errorMessage = 'Access denied. This app is for cashiers and mechanics only.';
             _isLoading = false;
           });
           return;
         }
 
-        // Navigate to dashboard
+        // Navigate to appropriate dashboard
         if (mounted) {
-          context.go('/dashboard');
+          if (user.role == 'mechanic') {
+            context.go('/mechanic-dashboard');
+          } else {
+            context.go('/dashboard');
+          }
         }
       } else {
         setState(() {
@@ -249,7 +253,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           
                           // Help text
                           Text(
-                            'Use your cashier credentials to access the POS system',
+                            'Use your cashier or mechanic credentials to access the system',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Colors.grey.shade600,
                             ),
