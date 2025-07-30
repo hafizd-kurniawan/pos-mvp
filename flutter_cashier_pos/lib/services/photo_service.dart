@@ -4,9 +4,11 @@ import '../constants/app_constants.dart';
 import '../models/photo.dart';
 import '../models/api_models.dart';
 import 'auth_service.dart';
+import 'logger_service.dart';
 
 class PhotoService {
   final AuthService _authService = AuthService();
+  final LoggerService _logger = LoggerService();
 
   // Get all photos for an entity (car, work order, etc.)
   Future<ApiResponse<List<Photo>>> getEntityPhotos({
@@ -55,32 +57,54 @@ class PhotoService {
   }
 
   // Get primary photo for an entity
-  Future<ApiResponse<Photo>> getPrimaryPhoto({
+  Future<ApiResponse<Photo?>> getPrimaryPhoto({
     required String entityType,
     required String entityId,
   }) async {
     try {
+      final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.photosEndpoint}/primary/$entityType/$entityId');
+      
+      _logger.apiCall(uri.toString(), method: 'GET');
+      final stopwatch = Stopwatch()..start();
+
       final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.photosEndpoint}/primary/$entityType/$entityId'),
+        uri,
         headers: _authService.getAuthHeaders(),
       );
+
+      stopwatch.stop();
+      _logger.apiResponse(uri.toString(), response.statusCode, duration: stopwatch.elapsed);
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
-        return ApiResponse<Photo>(
+        return ApiResponse<Photo?>(
           success: true,
-          message: data['message'],
-          data: Photo.fromJson(data['data']),
+          message: data['message'] ?? 'Primary photo retrieved successfully',
+          data: data['data'] != null ? Photo.fromJson(data['data']) : null,
+        );
+      } else if (response.statusCode == 404) {
+        // No primary photo found - this is normal
+        return ApiResponse<Photo?>(
+          success: true,
+          message: 'No primary photo found',
+          data: null,
         );
       } else {
-        return ApiResponse<Photo>(
+        final errorMessage = data['message'] ?? 'Failed to get primary photo';
+        _logger.apiError(uri.toString(), error: errorMessage, statusCode: response.statusCode, response: data);
+        
+        return ApiResponse<Photo?>(
           success: false,
-          message: data['message'] ?? 'No primary photo found',
+          message: errorMessage,
         );
       }
-    } catch (e) {
-      return ApiResponse<Photo>(
+    } catch (e, stackTrace) {
+      _logger.apiError('${AppConstants.baseUrl}${AppConstants.photosEndpoint}/primary/$entityType/$entityId', 
+                      error: e, stackTrace: stackTrace);
+      _logger.networkError('${AppConstants.baseUrl}${AppConstants.photosEndpoint}/primary/$entityType/$entityId', 'Get primary photo failed: $e');
+      
+      return ApiResponse<Photo?>(
         success: false,
         message: 'Network error: $e',
       );

@@ -125,6 +125,7 @@ func main() {
 			cars.DELETE("/:id", carHandler.DeleteCar)
 			cars.GET("/status/:status", carHandler.GetCarsByStatus)
 			cars.GET("/search", carHandler.SearchCars)
+			cars.GET("/customer/:customer_id", carHandler.GetCarsByCustomer)
 		}
 
 		// Customer routes

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../constants/app_constants.dart';
@@ -67,18 +68,38 @@ class ImageUploadService {
   Future<List<XFile>?> pickMultipleImages() async {
     try {
       _logger.userAction('Pick multiple images from gallery');
-      final List<XFile> images = await _picker.pickMultiImage(
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
-      );
       
-      _logger.info('Multiple images picked from gallery', tag: 'ImageUpload', data: {
-        'count': images.length,
-        'names': images.map((img) => img.name).toList(),
-      });
-      
-      return images;
+      // On web, use single image picker multiple times as a workaround
+      // for better compatibility
+      if (kIsWeb) {
+        final image = await _picker.pickImage(
+          source: ImageSource.gallery,
+          maxWidth: 1920,
+          maxHeight: 1080,
+          imageQuality: 85,
+        );
+        
+        if (image != null) {
+          _logger.info('Image picked from gallery (web)', tag: 'ImageUpload', data: {
+            'name': image.name,
+          });
+          return [image];
+        }
+        return [];
+      } else {
+        final List<XFile> images = await _picker.pickMultiImage(
+          maxWidth: 1920,
+          maxHeight: 1080,
+          imageQuality: 85,
+        );
+        
+        _logger.info('Multiple images picked from gallery', tag: 'ImageUpload', data: {
+          'count': images.length,
+          'names': images.map((img) => img.name).toList(),
+        });
+        
+        return images;
+      }
     } catch (e, stackTrace) {
       _logger.error('Failed to pick multiple images', tag: 'ImageUpload', error: e, stackTrace: stackTrace);
       return null;
@@ -108,13 +129,13 @@ class ImageUploadService {
       // Add form fields
       request.fields['entity_type'] = entityType;
       request.fields['entity_id'] = entityId;
+      request.fields['uploaded_by'] = _authService.getCurrentUser()?.id ?? '';
       if (photoType != null) request.fields['photo_type'] = photoType;
-      if (description != null) request.fields['description'] = description;
-      if (setPrimary) request.fields['set_primary'] = 'true';
+      if (description != null) request.fields['caption'] = description;
 
       // Add file
       final file = await http.MultipartFile.fromPath(
-        'photo',
+        'file', // Backend expects 'file' field name
         imageFile.path,
         filename: imageFile.name,
       );
@@ -219,32 +240,38 @@ class ImageUploadService {
   }
 
   // Validate image file
-  bool validateImageFile(XFile imageFile) {
-    // Check file size (max 10MB)
-    final file = File(imageFile.path);
-    final fileSize = file.lengthSync();
-    
-    if (fileSize > AppConstants.maxFileSize) {
-      _logger.warning('Image file too large', tag: 'ImageUpload', data: {
-        'fileSize': fileSize,
-        'maxSize': AppConstants.maxFileSize,
-        'fileName': imageFile.name,
-      });
+  Future<bool> validateImageFile(XFile imageFile) async {
+    try {
+      // Check file size (max 10MB)
+      final fileSize = kIsWeb 
+          ? (await imageFile.readAsBytes()).length 
+          : File(imageFile.path).lengthSync();
+      
+      if (fileSize > AppConstants.maxFileSize) {
+        _logger.warning('Image file too large', tag: 'ImageUpload', data: {
+          'fileSize': fileSize,
+          'maxSize': AppConstants.maxFileSize,
+          'fileName': imageFile.name,
+        });
+        return false;
+      }
+
+      // Check file extension
+      final extension = imageFile.path.split('.').last.toLowerCase();
+      if (!AppConstants.allowedImageTypes.contains(extension)) {
+        _logger.warning('Invalid image type', tag: 'ImageUpload', data: {
+          'extension': extension,
+          'allowedTypes': AppConstants.allowedImageTypes,
+          'fileName': imageFile.name,
+        });
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      _logger.error('File validation failed', tag: 'ImageUpload', error: e);
       return false;
     }
-
-    // Check file extension
-    final extension = imageFile.path.split('.').last.toLowerCase();
-    if (!AppConstants.allowedImageTypes.contains(extension)) {
-      _logger.warning('Invalid image type', tag: 'ImageUpload', data: {
-        'extension': extension,
-        'allowedTypes': AppConstants.allowedImageTypes,
-        'fileName': imageFile.name,
-      });
-      return false;
-    }
-
-    return true;
   }
 
   // Get file size in human readable format

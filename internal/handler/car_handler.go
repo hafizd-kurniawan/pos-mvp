@@ -220,3 +220,31 @@ func (h *CarHandler) SearchCars(c *gin.Context) {
 
 	c.JSON(http.StatusOK, service.PaginatedSuccessResponse("Cars retrieved successfully", cars, page, limit, total))
 }
+
+// GetCarsByCustomer godoc
+// @Summary Get cars by customer
+// @Description Get all cars owned by a specific customer
+// @Tags cars
+// @Accept json
+// @Produce json
+// @Param customer_id path string true "Customer ID"
+// @Success 200 {object} service.APIResponse
+// @Failure 400 {object} service.APIResponse
+// @Failure 500 {object} service.APIResponse
+// @Router /api/cars/customer/{customer_id} [get]
+func (h *CarHandler) GetCarsByCustomer(c *gin.Context) {
+	customerIDStr := c.Param("customer_id")
+	customerID, err := uuid.Parse(customerIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid customer ID", err.Error()))
+		return
+	}
+
+	cars, err := h.carService.GetCarsByCustomer(customerID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to get customer cars", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, service.SuccessResponse("Customer cars retrieved successfully", cars))
+}

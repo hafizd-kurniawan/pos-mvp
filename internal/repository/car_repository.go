@@ -20,6 +20,7 @@ type CarRepository interface {
 	GetByStatus(status string, limit, offset int) ([]model.Car, error)
 	Search(query string, limit, offset int) ([]model.Car, error)
 	Count() (int, error)
+	GetByCustomer(customerID uuid.UUID) ([]model.Car, error)
 }
 
 type carRepository struct {
@@ -178,4 +179,19 @@ func (r *carRepository) Count() (int, error) {
 	query := `SELECT COUNT(*) FROM cars WHERE deleted_at IS NULL`
 	err := r.db.Get(&count, query)
 	return count, err
+}
+
+func (r *carRepository) GetByCustomer(customerID uuid.UUID) ([]model.Car, error) {
+	var cars []model.Car
+	query := `
+		SELECT c.id, c.brand, c.model, c.year, c.color, c.price, c.mileage, c.vin, c.status, c.description,
+		       c.created_at, c.updated_at, c.deleted_at
+		FROM cars c
+		INNER JOIN invoices i ON c.id = i.car_id
+		WHERE i.customer_id = $1 AND i.type = 'purchase' AND c.deleted_at IS NULL
+		AND c.status IN ('available', 'in_repair')
+		ORDER BY c.created_at DESC`
+
+	err := r.db.Select(&cars, query, customerID)
+	return cars, err
 }

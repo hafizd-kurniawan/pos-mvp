@@ -17,6 +17,7 @@ type CarService interface {
 	SoftDeleteCar(id uuid.UUID) error
 	GetCarsByStatus(status string, page, limit int) ([]model.Car, int, error)
 	SearchCars(query string, page, limit int) ([]model.Car, int, error)
+	GetCarsByCustomer(customerID uuid.UUID) ([]model.Car, error)
 }
 
 type carService struct {
@@ -190,4 +191,12 @@ func (s *carService) SearchCars(query string, page, limit int) ([]model.Car, int
 	}
 
 	return cars, total, nil
+}
+
+func (s *carService) GetCarsByCustomer(customerID uuid.UUID) ([]model.Car, error) {
+	cars, err := s.carRepo.GetByCustomer(customerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cars by customer: %w", err)
+	}
+	return cars, nil
 }
