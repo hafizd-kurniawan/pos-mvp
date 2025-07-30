@@ -133,12 +133,24 @@ class ImageUploadService {
       if (photoType != null) request.fields['photo_type'] = photoType;
       if (description != null) request.fields['caption'] = description;
 
-      // Add file
-      final file = await http.MultipartFile.fromPath(
-        'file', // Backend expects 'file' field name
-        imageFile.path,
-        filename: imageFile.name,
-      );
+      // Add file - handle web vs mobile platforms differently
+      late http.MultipartFile file;
+      if (kIsWeb) {
+        // For web, read bytes directly instead of using file path
+        final bytes = await imageFile.readAsBytes();
+        file = http.MultipartFile.fromBytes(
+          'file', // Backend expects 'file' field name
+          bytes,
+          filename: imageFile.name,
+        );
+      } else {
+        // For mobile, use file path
+        file = await http.MultipartFile.fromPath(
+          'file', // Backend expects 'file' field name
+          imageFile.path,
+          filename: imageFile.name,
+        );
+      }
       request.files.add(file);
 
       final streamedResponse = await request.send();
@@ -256,16 +268,32 @@ class ImageUploadService {
         return false;
       }
 
-      // Check file extension
-      final extension = imageFile.path.split('.').last.toLowerCase();
+      // Check file extension - use name for web, path for mobile
+      String fileName = kIsWeb ? imageFile.name : imageFile.path;
+      if (!fileName.contains('.')) {
+        _logger.warning('Invalid file name format', tag: 'ImageUpload', data: {
+          'fileName': fileName,
+        });
+        return false;
+      }
+      
+      final extension = fileName.split('.').last.toLowerCase();
       if (!AppConstants.allowedImageTypes.contains(extension)) {
         _logger.warning('Invalid image type', tag: 'ImageUpload', data: {
           'extension': extension,
           'allowedTypes': AppConstants.allowedImageTypes,
           'fileName': imageFile.name,
+          'platform': kIsWeb ? 'web' : 'mobile',
         });
         return false;
       }
+
+      _logger.info('Image validation passed', tag: 'ImageUpload', data: {
+        'fileName': imageFile.name,
+        'extension': extension,
+        'fileSize': fileSize,
+        'platform': kIsWeb ? 'web' : 'mobile',
+      });
 
       return true;
     } catch (e) {

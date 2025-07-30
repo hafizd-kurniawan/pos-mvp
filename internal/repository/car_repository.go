@@ -188,7 +188,7 @@ func (r *carRepository) GetByCustomer(customerID uuid.UUID) ([]model.Car, error)
 		       c.created_at, c.updated_at, c.deleted_at
 		FROM cars c
 		INNER JOIN invoices i ON c.id = i.car_id
-		WHERE i.customer_id = $1 AND i.type = 'purchase' AND c.deleted_at IS NULL
+		WHERE i.customer_id = $1 AND i.invoice_type = 'purchase' AND c.deleted_at IS NULL
 		AND c.status IN ('available', 'in_repair')
 		ORDER BY c.created_at DESC`
 
