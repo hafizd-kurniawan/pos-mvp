@@ -255,4 +255,53 @@ class CarService {
       );
     }
   }
+
+  // Get cars by customer ID (for purchase from customer scenario)
+  Future<ApiResponse<List<Car>>> getCarsByCustomer(String customerId) async {
+    try {
+      final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.carsEndpoint}/customer/$customerId');
+      
+      _logger.apiCall(uri.toString(), method: 'GET');
+      final stopwatch = Stopwatch()..start();
+
+      final response = await http.get(
+        uri,
+        headers: _authService.getAuthHeaders(),
+      );
+
+      stopwatch.stop();
+      _logger.apiResponse(uri.toString(), response.statusCode, duration: stopwatch.elapsed);
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success'] == true) {
+        final carsList = (data['data'] as List? ?? [])
+            .map((json) => Car.fromJson(json))
+            .toList();
+
+        return ApiResponse<List<Car>>(
+          success: true,
+          message: data['message'] ?? 'Customer cars retrieved successfully',
+          data: carsList,
+        );
+      } else {
+        final errorMessage = data['message'] ?? 'No cars found for this customer';
+        _logger.apiError(uri.toString(), error: errorMessage, statusCode: response.statusCode, response: data);
+        
+        return ApiResponse<List<Car>>(
+          success: false,
+          message: errorMessage,
+        );
+      }
+    } catch (e, stackTrace) {
+      _logger.apiError('${AppConstants.baseUrl}${AppConstants.carsEndpoint}/customer/$customerId', 
+                      error: e, stackTrace: stackTrace);
+      _logger.networkError('${AppConstants.baseUrl}${AppConstants.carsEndpoint}/customer/$customerId', 'Get customer cars failed: $e');
+      
+      return ApiResponse<List<Car>>(
+        success: false,
+        message: 'Network error: $e',
+      );
+    }
+  }
 }
