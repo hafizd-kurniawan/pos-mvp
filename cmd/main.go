@@ -46,6 +46,8 @@ func main() {
 	stockMovementRepo := repository.NewStockMovementRepository(db)
 	workOrderRepo := repository.NewWorkOrderRepository(db)
 	workOrderItemRepo := repository.NewWorkOrderItemRepository(db)
+	invoiceRepo := repository.NewInvoiceRepository(db)
+	photoRepo := repository.NewPhotoRepository(db)
 
 	// Initialize services
 	carService := service.NewCarService(carRepo)
@@ -58,6 +60,8 @@ func main() {
 	authService := service.NewAuthService(cfg.JWT.Secret, 24*time.Hour)
 	sparepartService := service.NewSparepartService(sparepartRepo, stockMovementRepo, activityLogRepo)
 	workOrderService := service.NewWorkOrderService(workOrderRepo, workOrderItemRepo, sparepartRepo, stockMovementRepo, activityLogRepo)
+	invoiceService := service.NewInvoiceService(invoiceRepo)
+	photoService := service.NewPhotoService(photoRepo)
 
 	// Initialize handlers
 	carHandler := handler.NewCarHandler(carService)
@@ -70,6 +74,9 @@ func main() {
 	authHandler := handler.NewAuthHandler(authService, userRepo, sessionRepo, activityLogRepo)
 	sparepartHandler := handler.NewSparepartHandler(sparepartService)
 	workOrderHandler := handler.NewWorkOrderHandler(workOrderService)
+	invoiceHandler := handler.NewInvoiceHandler(invoiceService)
+	photoHandler := handler.NewPhotoHandler(photoService)
+	buySellHandler := handler.NewBuySellHandler(invoiceService, carService, customerService, transactionService)
 
 	// Setup Gin router
 	r := gin.Default()
@@ -202,6 +209,45 @@ func main() {
 			workOrders.PUT("/:id/progress", workOrderHandler.UpdateWorkOrderProgress)
 			workOrders.POST("/:id/items", workOrderHandler.AddWorkOrderItem)
 			workOrders.GET("/:id/items", workOrderHandler.GetWorkOrderItems)
+		}
+
+		// Invoice routes
+		invoices := api.Group("/invoices")
+		{
+			invoices.POST("", invoiceHandler.CreateInvoice)
+			invoices.GET("", invoiceHandler.GetAllInvoices)
+			invoices.GET("/:id", invoiceHandler.GetInvoice)
+			invoices.PUT("/:id", invoiceHandler.UpdateInvoice)
+			invoices.DELETE("/:id", invoiceHandler.DeleteInvoice)
+			invoices.GET("/number", invoiceHandler.GetInvoiceByNumber)
+			invoices.GET("/customer/:customer_id", invoiceHandler.GetInvoicesByCustomer)
+			invoices.GET("/type/:type", invoiceHandler.GetInvoicesByType)
+			invoices.GET("/date-range", invoiceHandler.GetInvoicesByDateRange)
+			invoices.POST("/:id/paid", invoiceHandler.MarkInvoiceAsPaid)
+		}
+
+		// Photo routes
+		photos := api.Group("/photos")
+		{
+			photos.POST("/upload", photoHandler.UploadPhoto)
+			photos.GET("", photoHandler.GetAllPhotos)
+			photos.GET("/:id", photoHandler.GetPhoto)
+			photos.PUT("/:id", photoHandler.UpdatePhoto)
+			photos.DELETE("/:id", photoHandler.DeletePhoto)
+			photos.GET("/entity/:entity_type/:entity_id", photoHandler.GetPhotosByEntity)
+			photos.GET("/primary/:entity_type/:entity_id", photoHandler.GetPrimaryPhoto)
+			photos.GET("/type/:entity_type/:entity_id/:photo_type", photoHandler.GetPhotosByType)
+			photos.POST("/primary/:entity_type/:entity_id/:photo_id", photoHandler.SetPrimaryPhoto)
+		}
+
+		// Buy/Sell routes
+		buySell := api.Group("/buy-sell")
+		{
+			buySell.POST("/purchase", buySellHandler.PurchaseVehicle)
+			buySell.POST("/sell", buySellHandler.SellVehicle)
+			buySell.GET("/purchases", buySellHandler.GetPurchaseInvoices)
+			buySell.GET("/sales", buySellHandler.GetSalesInvoices)
+			buySell.GET("/available-cars", buySellHandler.GetAvailableCars)
 		}
 	}
 
