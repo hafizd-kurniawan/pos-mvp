@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import '../constants/app_constants.dart';
 import '../models/api_models.dart';
@@ -136,12 +137,32 @@ class ImageUploadService {
       // Add file - handle web vs mobile platforms differently
       late http.MultipartFile file;
       if (kIsWeb) {
-        // For web, read bytes directly instead of using file path
+        // For web, read bytes directly and set proper content type
         final bytes = await imageFile.readAsBytes();
+        // Determine content type from file extension
+        String contentType = 'image/jpeg'; // default
+        final extension = imageFile.name.split('.').last.toLowerCase();
+        switch (extension) {
+          case 'png':
+            contentType = 'image/png';
+            break;
+          case 'jpg':
+          case 'jpeg':
+            contentType = 'image/jpeg';
+            break;
+          case 'gif':
+            contentType = 'image/gif';
+            break;
+          case 'webp':
+            contentType = 'image/webp';
+            break;
+        }
+        
         file = http.MultipartFile.fromBytes(
           'file', // Backend expects 'file' field name
           bytes,
           filename: imageFile.name,
+          contentType: MediaType.parse(contentType),
         );
       } else {
         // For mobile, use file path

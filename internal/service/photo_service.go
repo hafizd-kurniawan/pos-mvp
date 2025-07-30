@@ -46,7 +46,7 @@ func (s *photoService) UploadPhoto(entityType string, entityID uuid.UUID, photoT
 	}
 	
 	// Validate file type
-	allowedTypes := []string{"image/jpeg", "image/jpg", "image/png", "image/gif"}
+	allowedTypes := []string{"image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"}
 	contentType := file.Header.Get("Content-Type")
 	if !s.isAllowedFileType(contentType, allowedTypes) {
 		return nil, fmt.Errorf("unsupported file type: %s", contentType)

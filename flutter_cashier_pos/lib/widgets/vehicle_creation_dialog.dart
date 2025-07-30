@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/car.dart';
 import '../models/customer.dart';
 import '../services/car_service.dart';
+import '../services/image_upload_service.dart';
 import '../services/logger_service.dart';
 import '../utils/app_theme.dart';
+import '../widgets/photo_upload_widget.dart';
 
 class VehicleCreationDialog extends StatefulWidget {
   final Customer? customer; // If creating for a specific customer
@@ -26,6 +29,7 @@ class VehicleCreationDialog extends StatefulWidget {
 
 class _VehicleCreationDialogState extends State<VehicleCreationDialog> {
   final CarService _carService = CarService();
+  final ImageUploadService _imageUploadService = ImageUploadService();
   final LoggerService _logger = logger;
   final _formKey = GlobalKey<FormState>();
   
@@ -45,6 +49,10 @@ class _VehicleCreationDialogState extends State<VehicleCreationDialog> {
   String _selectedFuelType = 'gasoline';
   String _selectedTransmission = 'manual';
   String _selectedCondition = 'good';
+  
+  // Photo upload
+  List<XFile> _selectedPhotos = [];
+  List<String> _photoTypes = [];
   
   bool _isLoading = false;
 
@@ -80,6 +88,7 @@ class _VehicleCreationDialogState extends State<VehicleCreationDialog> {
         'customerId': widget.customer?.id,
         'brand': _brandController.text,
         'model': _modelController.text,
+        'photoCount': _selectedPhotos.length,
       });
 
       final response = await _carService.createCar(
@@ -106,6 +115,36 @@ class _VehicleCreationDialogState extends State<VehicleCreationDialog> {
           'isForCustomer': widget.isForCustomer,
         });
 
+        // Upload photos if any were selected
+        if (_selectedPhotos.isNotEmpty) {
+          _logger.info('Uploading vehicle photos', tag: 'VehicleCreation', data: {
+            'vehicleId': response.data!.id,
+            'photoCount': _selectedPhotos.length,
+          });
+
+          final uploadResponse = await _imageUploadService.uploadMultipleImages(
+            imageFiles: _selectedPhotos,
+            entityType: 'car',
+            entityId: response.data!.id!,
+            photoTypes: _photoTypes.isNotEmpty ? _photoTypes : null,
+            description: 'Vehicle photos',
+          );
+
+          if (!uploadResponse.isSuccess) {
+            _logger.warning('Photo upload failed', tag: 'VehicleCreation', data: {
+              'vehicleId': response.data!.id,
+              'error': uploadResponse.message,
+            });
+            // Show warning but don't fail the entire operation
+            _showWarningSnackBar('Vehicle created but photo upload failed: ${uploadResponse.message}');
+          } else {
+            _logger.info('Vehicle photos uploaded successfully', tag: 'VehicleCreation', data: {
+              'vehicleId': response.data!.id,
+              'uploadedCount': uploadResponse.data?.length ?? 0,
+            });
+          }
+        }
+
         widget.onVehicleCreated(response.data!);
         Navigator.of(context).pop();
       } else {
@@ -127,6 +166,29 @@ class _VehicleCreationDialogState extends State<VehicleCreationDialog> {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  void _showWarningSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.orange,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 4),
+      ),
+    );
+  }
+
+  void _onPhotosSelected(List<XFile> photos, [List<String>? photoTypes]) {
+    setState(() {
+      _selectedPhotos = photos;
+      _photoTypes = photoTypes ?? [];
+    });
+    
+    _logger.userAction('Vehicle photos selected', data: {
+      'photoCount': photos.length,
+      'photoTypes': photoTypes,
+    });
   }
 
   @override
@@ -437,6 +499,19 @@ class _VehicleCreationDialogState extends State<VehicleCreationDialog> {
                           prefixIcon: Icon(Icons.notes),
                           hintText: 'Additional notes about the vehicle...',
                         ),
+                      ),
+                      SizedBox(height: 16.h),
+
+                      // Vehicle Photos
+                      _buildSectionTitle('Vehicle Photos'),
+                      SizedBox(height: 12.h),
+                      PhotoUploadWidget(
+                        title: 'Upload Vehicle Photos',
+                        subtitle: 'Add photos of the vehicle for documentation',
+                        allowMultiple: true,
+                        enablePhotoTypeSelection: true,
+                        onPhotosSelected: (photos) => _onPhotosSelected(photos),
+                        onPhotosSelectedWithTypes: (photos, types) => _onPhotosSelected(photos, types),
                       ),
                     ],
                   ),
