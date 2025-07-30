@@ -727,125 +727,222 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
   }
 
   Widget _buildVehicleFilters() {
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          children: [
-            // Search field
-            TextField(
-              controller: _vehicleFilterController,
-              decoration: InputDecoration(
-                labelText: 'Search vehicles',
-                hintText: 'Search by brand, model, license plate...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _vehicleFilterController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _vehicleFilterController.clear();
-                        },
-                      )
-                    : null,
+    return Column(
+      children: [
+        // Search field
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: Colors.grey.shade200,
+              width: 1,
+            ),
+          ),
+          child: TextField(
+            controller: _vehicleFilterController,
+            decoration: InputDecoration(
+              hintText: 'Search by brand, model, license plate...',
+              hintStyle: TextStyle(
+                color: Colors.grey.shade500,
+                fontSize: 14.sp,
+              ),
+              prefixIcon: Icon(
+                Icons.search_rounded,
+                size: 20.sp,
+                color: Colors.grey.shade400,
+              ),
+              suffixIcon: _vehicleFilterController.text.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.clear_rounded,
+                        size: 20.sp,
+                        color: Colors.grey.shade400,
+                      ),
+                      onPressed: () {
+                        _vehicleFilterController.clear();
+                      },
+                    )
+                  : null,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 20.w,
+                vertical: 16.h,
               ),
             ),
-            
-            SizedBox(height: 16.h),
-            
-            // Filter dropdowns
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedBrandFilter,
-                    decoration: const InputDecoration(
-                      labelText: 'Brand',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            textInputAction: TextInputAction.search,
+          ),
+        ),
+        
+        SizedBox(height: 16.h),
+        
+        // Filter dropdowns
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: DropdownButtonFormField<String>(
+                  value: _selectedBrandFilter,
+                  decoration: InputDecoration(
+                    labelText: 'Brand',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                    border: InputBorder.none,
+                    labelStyle: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey.shade600,
                     ),
-                    items: _getUniqueBrands()
+                  ),
+                  isExpanded: true,
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: null,
+                      child: Text(
+                        'All Brands',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey.shade500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                    ..._getUniqueBrands()
                         .map((brand) => DropdownMenuItem(
                               value: brand,
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: Text(
-                                  brand ?? '',
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
+                              child: Text(
+                                brand,
+                                style: TextStyle(fontSize: 14.sp),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
                             ))
                         .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedBrandFilter = value;
-                      });
-                      _filterVehicles();
-                    },
-                  ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedBrandFilter = value;
+                    });
+                    _filterVehicles();
+                  },
                 ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedFuelTypeFilter,
-                    decoration: const InputDecoration(
-                      labelText: 'Fuel Type',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: DropdownButtonFormField<String>(
+                  value: _selectedFuelTypeFilter,
+                  decoration: InputDecoration(
+                    labelText: 'Fuel Type',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                    border: InputBorder.none,
+                    labelStyle: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey.shade600,
                     ),
-                    items: _getUniqueFuelTypes()
+                  ),
+                  isExpanded: true,
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: null,
+                      child: Text(
+                        'All Fuel Types',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey.shade500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                    ..._getUniqueFuelTypes()
                         .map((fuel) => DropdownMenuItem(
                               value: fuel,
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: Text(
-                                  fuel ?? '',
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
+                              child: Text(
+                                fuel,
+                                style: TextStyle(fontSize: 14.sp),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
                             ))
                         .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedFuelTypeFilter = value;
-                      });
-                      _filterVehicles();
-                    },
-                  ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedFuelTypeFilter = value;
+                    });
+                    _filterVehicles();
+                  },
                 ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedTransmissionFilter,
-                    decoration: const InputDecoration(
-                      labelText: 'Transmission',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: DropdownButtonFormField<String>(
+                  value: _selectedTransmissionFilter,
+                  decoration: InputDecoration(
+                    labelText: 'Transmission',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                    border: InputBorder.none,
+                    labelStyle: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey.shade600,
                     ),
-                    items: _getUniqueTransmissions()
+                  ),
+                  isExpanded: true,
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: null,
+                      child: Text(
+                        'All Transmissions',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey.shade500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                    ..._getUniqueTransmissions()
                         .map((trans) => DropdownMenuItem(
                               value: trans,
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: Text(
-                                  trans ?? '',
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
+                              child: Text(
+                                trans,
+                                style: TextStyle(fontSize: 14.sp),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
                             ))
                         .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedTransmissionFilter = value;
-                      });
-                      _filterVehicles();
-                    },
-                  ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedTransmissionFilter = value;
+                    });
+                    _filterVehicles();
+                  },
                 ),
-              ],
+              ),
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 
@@ -879,16 +976,85 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.surfaceColor,
       appBar: AppBar(
-        title: const Text('New Sale'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/dashboard'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppTheme.primaryGradient,
+          ),
+        ),
+        title: Row(
+          children: [
+            Container(
+              width: 32.w,
+              height: 32.h,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Icon(
+                Icons.point_of_sale_rounded,
+                size: 20.sp,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'New Sale',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                Text(
+                  'Vehicle transaction',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.8),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        leading: Container(
+          margin: EdgeInsets.only(left: 16.w),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: IconButton(
+            icon: Icon(
+              Icons.arrow_back_rounded,
+              color: Colors.white,
+              size: 20.sp,
+            ),
+            onPressed: () => context.go('/dashboard'),
+          ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadAvailableCars,
+          Container(
+            margin: EdgeInsets.only(right: 16.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.refresh_rounded,
+                color: Colors.white,
+                size: 20.sp,
+              ),
+              onPressed: _loadAvailableCars,
+            ),
           ),
         ],
       ),
@@ -896,205 +1062,347 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
       body: LoadingOverlay(
         isLoading: _isLoading,
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.all(24.w),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Customer selection
-                Text(
-                  'Select Customer',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 12.h),
-                _buildCustomerSelector(),
-                
-                SizedBox(height: 24.h),
-                
-                // Vehicle selection with filters
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Select Vehicle',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                // Customer selection - Modern design
+                Container(
+                  padding: EdgeInsets.all(24.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
-                    ),
-                    TextButton.icon(
-                      onPressed: _clearFilters,
-                      icon: Icon(Icons.clear_all, size: 18.sp),
-                      label: const Text('Clear Filters'),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12.h),
-                
-                // Vehicle filters
-                _buildVehicleFilters(),
-                
-                SizedBox(height: 16.h),
-                
-                if (_filteredCars.isEmpty)
-                  Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(20.w),
-                      child: Column(
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Icon(
-                            Icons.inventory_2_outlined,
-                            size: 48.sp,
-                            color: Colors.grey.shade400,
+                          Container(
+                            width: 40.w,
+                            height: 40.h,
+                            decoration: BoxDecoration(
+                              gradient: AppTheme.primaryGradient,
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            child: Icon(
+                              Icons.person_rounded,
+                              size: 20.sp,
+                              color: Colors.white,
+                            ),
                           ),
-                          SizedBox(height: 12.h),
+                          SizedBox(width: 16.w),
                           Text(
-                            'No vehicles available for sale',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Colors.grey.shade600,
+                            'Select Customer',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.grey.shade900,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  )
-                else
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4, // Fixed 4 columns as requested
-                      crossAxisSpacing: 12.w,
-                      mainAxisSpacing: 12.h,
-                      childAspectRatio: 0.75, // Adjusted for better card proportions
-                    ),
-                    itemCount: _filteredCars.length,
-                    itemBuilder: (context, index) {
-                      final car = _filteredCars[index];
-                      return GestureDetector(
-                        onLongPress: () => _showCarDetails(car),
-                        child: CarSelectionCard(
-                          car: car,
-                          isSelected: _selectedCar?.id == car.id,
-                          onTap: () => _onCarSelected(car),
-                        ),
-                      );
-                    },
+                      SizedBox(height: 20.h),
+                      _buildCustomerSelector(),
+                    ],
                   ),
+                ),
+                
+                SizedBox(height: 24.h),
+                
+                // Vehicle selection with filters - Modern design
+                Container(
+                  padding: EdgeInsets.all(24.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 40.w,
+                                height: 40.h,
+                                decoration: BoxDecoration(
+                                  gradient: AppTheme.primaryGradient,
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                child: Icon(
+                                  Icons.directions_car_rounded,
+                                  size: 20.sp,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(width: 16.w),
+                              Text(
+                                'Select Vehicle',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.grey.shade900,
+                                ),
+                              ),
+                            ],
+                          ),
+                          TextButton.icon(
+                            onPressed: _clearFilters,
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppTheme.primaryColor,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12.w,
+                                vertical: 8.h,
+                              ),
+                            ),
+                            icon: Icon(Icons.clear_all_rounded, size: 16.sp),
+                            label: Text(
+                              'Clear Filters',
+                              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20.h),
+                      
+                      // Vehicle filters
+                      _buildVehicleFilters(),
+                      
+                      SizedBox(height: 20.h),
+                      
+                      if (_filteredCars.isEmpty)
+                        Container(
+                          padding: EdgeInsets.all(40.w),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.inventory_2_outlined,
+                                size: 48.sp,
+                                color: Colors.grey.shade400,
+                              ),
+                              SizedBox(height: 16.h),
+                              Text(
+                                'No vehicles available for sale',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              Text(
+                                'Try adjusting your filters or contact admin',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.grey.shade500,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4, // Fixed 4 columns as requested
+                            crossAxisSpacing: 16.w,
+                            mainAxisSpacing: 16.h,
+                            childAspectRatio: 0.75, // Adjusted for better card proportions
+                          ),
+                          itemCount: _filteredCars.length,
+                          itemBuilder: (context, index) {
+                            final car = _filteredCars[index];
+                            return GestureDetector(
+                              onLongPress: () => _showCarDetails(car),
+                              child: CarSelectionCard(
+                                car: car,
+                                isSelected: _selectedCar?.id == car.id,
+                                onTap: () => _onCarSelected(car),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
+                ),
                 
                 if (_selectedCar != null) ...[
                   SizedBox(height: 24.h),
                   
-                  // Sale details
-                  Text(
-                    'Sale Details',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  
-                  // Amount field
-                  TextFormField(
-                    controller: _amountController,
-                    decoration: const InputDecoration(
-                      labelText: 'Sale Amount (Rp)',
-                      prefixIcon: Icon(Icons.attach_money),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Amount is required';
-                      }
-                      final amount = double.tryParse(value);
-                      if (amount == null || amount <= 0) {
-                        return 'Please enter a valid amount';
-                      }
-                      return null;
-                    },
-                  ),
-                  
-                  SizedBox(height: 16.h),
-                  
-                  // Discount field
-                  TextFormField(
-                    controller: _discountController,
-                    decoration: const InputDecoration(
-                      labelText: 'Discount Amount (Rp) - Optional',
-                      prefixIcon: Icon(Icons.local_offer),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty) {
-                        final discount = double.tryParse(value);
-                        if (discount == null || discount < 0) {
-                          return 'Please enter a valid discount amount';
-                        }
-                        final amount = double.tryParse(_amountController.text) ?? 0.0;
-                        if (discount >= amount) {
-                          return 'Discount cannot be greater than or equal to amount';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                  
-                  SizedBox(height: 16.h),
-                  
-                  // Payment method
-                  Text(
-                    'Payment Method',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  PaymentMethodSelector(
-                    selectedMethod: _selectedPaymentMethod,
-                    onMethodChanged: _onPaymentMethodChanged,
-                  ),
-                  
-                  SizedBox(height: 16.h),
-                  
-                  // Notes field
-                  TextFormField(
-                    controller: _notesController,
-                    decoration: const InputDecoration(
-                      labelText: 'Notes (Optional)',
-                      prefixIcon: Icon(Icons.note),
-                    ),
-                    maxLines: 3,
-                  ),
-                  
-                  SizedBox(height: 24.h),
-                  
-                  // Total amount display
+                  // Sale details - Modern design
                   Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(16.w),
+                    padding: EdgeInsets.all(24.w),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(
-                        color: Theme.of(context).primaryColor.withOpacity(0.3),
-                      ),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 40.w,
+                              height: 40.h,
+                              decoration: BoxDecoration(
+                                gradient: AppTheme.primaryGradient,
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              child: Icon(
+                                Icons.receipt_long_rounded,
+                                size: 20.sp,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(width: 16.w),
+                            Text(
+                              'Sale Details',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.grey.shade900,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 20.h),
+                        
+                        // Amount field
+                        TextFormField(
+                          controller: _amountController,
+                          decoration: InputDecoration(
+                            labelText: 'Sale Amount (Rp)',
+                            prefixIcon: const Icon(Icons.attach_money_rounded),
+                            fillColor: Colors.grey.shade50,
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Amount is required';
+                            }
+                            final amount = double.tryParse(value);
+                            if (amount == null || amount <= 0) {
+                              return 'Please enter a valid amount';
+                            }
+                            return null;
+                          },
+                        ),
+                        
+                        SizedBox(height: 16.h),
+                        
+                        // Discount field
+                        TextFormField(
+                          controller: _discountController,
+                          decoration: InputDecoration(
+                            labelText: 'Discount Amount (Rp) - Optional',
+                            prefixIcon: const Icon(Icons.local_offer_rounded),
+                            fillColor: Colors.grey.shade50,
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              final discount = double.tryParse(value);
+                              if (discount == null || discount < 0) {
+                                return 'Please enter a valid discount amount';
+                              }
+                              final amount = double.tryParse(_amountController.text) ?? 0.0;
+                              if (discount >= amount) {
+                                return 'Discount cannot be greater than or equal to amount';
+                              }
+                            }
+                            return null;
+                          },
+                        ),
+                        
+                        SizedBox(height: 20.h),
+                        
+                        // Payment method
                         Text(
-                          'Total Amount',
+                          'Payment Method',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade800,
                           ),
                         ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          'Rp ${_totalAmount.toStringAsFixed(0)}',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor,
+                        SizedBox(height: 12.h),
+                        PaymentMethodSelector(
+                          selectedMethod: _selectedPaymentMethod,
+                          onMethodChanged: _onPaymentMethodChanged,
+                        ),
+                        
+                        SizedBox(height: 20.h),
+                        
+                        // Notes field
+                        TextFormField(
+                          controller: _notesController,
+                          decoration: InputDecoration(
+                            labelText: 'Notes (Optional)',
+                            prefixIcon: const Icon(Icons.note_rounded),
+                            fillColor: Colors.grey.shade50,
+                          ),
+                          maxLines: 3,
+                        ),
+                        
+                        SizedBox(height: 24.h),
+                        
+                        // Total amount display
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(20.w),
+                          decoration: BoxDecoration(
+                            gradient: AppTheme.primaryGradient.scale(0.1),
+                            borderRadius: BorderRadius.circular(16.r),
+                            border: Border.all(
+                              color: AppTheme.primaryColor.withOpacity(0.3),
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Total Amount',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              Text(
+                                'Rp ${_totalAmount.toStringAsFixed(0)}',
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.primaryColor,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -1106,16 +1414,40 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                   // Process sale button
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _processSale,
-                      icon: Icon(Icons.sell, size: 20.sp),
-                      label: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        child: Text(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.primaryGradient,
+                        borderRadius: BorderRadius.circular(16.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton.icon(
+                        onPressed: _processSale,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.symmetric(vertical: 20.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                        ),
+                        icon: Icon(
+                          Icons.sell_rounded,
+                          size: 20.sp,
+                          color: Colors.white,
+                        ),
+                        label: Text(
                           'Process Sale',
                           style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),

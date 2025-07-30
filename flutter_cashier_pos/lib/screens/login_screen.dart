@@ -182,7 +182,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Container(
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8.r),
+                              borderRadius: BorderRadius.circular(12.r),
                             ),
                             child: DropdownButtonFormField<String>(
                               value: _selectedRole,
@@ -193,18 +193,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   size: 20.sp,
                                 ),
                                 border: InputBorder.none,
-                                contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                               ),
-                              hint: Text('Select your role'),
-                              items: _availableRoles.map((role) {
+                              hint: Text(
+                                'Select your role',
+                                style: TextStyle(fontSize: 14.sp),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              isExpanded: true,
+                              items: _availableRoles.where((role) => role['value']?.isNotEmpty == true).map((role) {
                                 return DropdownMenuItem<String>(
                                   value: role['value'],
-                                  child: SizedBox(
-                                    width: double.infinity,
+                                  child: Container(
+                                    constraints: BoxConstraints(minHeight: 24.h),
+                                    padding: EdgeInsets.symmetric(vertical: 4.h),
                                     child: Text(
                                       role['label']!,
                                       style: TextStyle(
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w500,
                                         fontSize: 14.sp,
                                       ),
                                       overflow: TextOverflow.ellipsis,

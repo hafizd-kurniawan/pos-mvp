@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 import 'package:go_router/go_router.dart';
 import '../models/car.dart';
 import '../services/car_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/loading_overlay.dart';
 import '../widgets/inventory_car_card.dart';
-import '../widgets/placeholder_widgets.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -22,33 +20,36 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   
   List<Car> _cars = [];
+  List<Car> _filteredCars = [];
   List<String> _brands = [];
   bool _isLoading = false;
   bool _isSearching = false;
   int _currentPage = 1;
   bool _hasMoreData = true;
   
-  // Filter parameters
-  String? _selectedBrand;
-  String? _selectedModel;
-  int? _yearFrom;
-  int? _yearTo;
-  double? _priceFrom;
-  double? _priceTo;
-  String? _fuelType;
-  String? _transmission;
+  // Filter parameters - matching sales screen
+  String? _selectedBrandFilter;
+  String? _selectedFuelTypeFilter;
+  String? _selectedTransmissionFilter;
 
   @override
   void initState() {
     super.initState();
     _loadCars();
     _loadBrands();
+    _setupFilterListener();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _setupFilterListener() {
+    _searchController.addListener(() {
+      _filterVehicles();
+    });
   }
 
   Future<void> _loadCars({bool isRefresh = false}) async {
@@ -72,12 +73,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         setState(() {
           if (isRefresh) {
             _cars = response.data!;
+            _filteredCars = response.data!;
           } else {
             _cars.addAll(response.data!);
+            _filteredCars = _cars;
           }
           _hasMoreData = response.pagination?.hasNext ?? false;
           if (_hasMoreData) _currentPage++;
         });
+        _filterVehicles(); // Apply current filters
       } else {
         _showErrorSnackBar(response.message);
       }
@@ -101,102 +105,197 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     }
   }
 
-  Future<void> _searchCars() async {
-    setState(() => _isSearching = true);
-    
-    try {
-      final response = await _carService.searchCars(
-        brand: _selectedBrand,
-        model: _selectedModel,
-        yearFrom: _yearFrom,
-        yearTo: _yearTo,
-        priceFrom: _priceFrom,
-        priceTo: _priceTo,
-        fuelType: _fuelType,
-        transmission: _transmission,
-      );
-
-      if (response.isSuccess && response.data != null) {
-        setState(() {
-          _cars = response.data!;
-          _hasMoreData = response.pagination?.hasNext ?? false;
-          _currentPage = response.pagination?.page ?? 1;
-          if (_hasMoreData) _currentPage++;
-        });
-      } else {
-        _showErrorSnackBar(response.message);
-      }
-    } catch (e) {
-      _showErrorSnackBar('Error searching cars: $e');
-    } finally {
-      setState(() => _isSearching = false);
-    }
-  }
-
-  Future<void> _showFilterDialog() async {
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) => CarFilterDialog(
-        brands: _brands,
-        selectedBrand: _selectedBrand,
-        selectedModel: _selectedModel,
-        yearFrom: _yearFrom,
-        yearTo: _yearTo,
-        priceFrom: _priceFrom,
-        priceTo: _priceTo,
-        fuelType: _fuelType,
-        transmission: _transmission,
-      ),
-    );
-
-    if (result != null) {
-      setState(() {
-        _selectedBrand = result['brand'];
-        _selectedModel = result['model'];
-        _yearFrom = result['yearFrom'];
-        _yearTo = result['yearTo'];
-        _priceFrom = result['priceFrom'];
-        _priceTo = result['priceTo'];
-        _fuelType = result['fuelType'];
-        _transmission = result['transmission'];
-      });
-      
-      await _searchCars();
-    }
+  void _filterVehicles() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredCars = _cars.where((car) {
+        final matchesText = query.isEmpty || 
+            car.displayName.toLowerCase().contains(query) ||
+            car.licensePlate.toLowerCase().contains(query) ||
+            car.brand.toLowerCase().contains(query) ||
+            car.model.toLowerCase().contains(query) ||
+            car.color.toLowerCase().contains(query);
+            
+        final matchesBrand = _selectedBrandFilter == null || car.brand == _selectedBrandFilter;
+        final matchesFuelType = _selectedFuelTypeFilter == null || car.fuelType == _selectedFuelTypeFilter;
+        final matchesTransmission = _selectedTransmissionFilter == null || car.transmission == _selectedTransmissionFilter;
+        
+        return matchesText && matchesBrand && matchesFuelType && matchesTransmission;
+      }).toList();
+    });
   }
 
   void _clearFilters() {
     setState(() {
-      _selectedBrand = null;
-      _selectedModel = null;
-      _yearFrom = null;
-      _yearTo = null;
-      _priceFrom = null;
-      _priceTo = null;
-      _fuelType = null;
-      _transmission = null;
       _searchController.clear();
+      _selectedBrandFilter = null;
+      _selectedFuelTypeFilter = null;
+      _selectedTransmissionFilter = null;
+      _filteredCars = _cars;
     });
-    _loadCars(isRefresh: true);
   }
 
   Future<void> _showCarDetails(Car car) async {
     await showDialog(
       context: context,
-      builder: (context) => CarDetailsDialog(car: car),
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title: Row(
+          children: [
+            Container(
+              width: 40.w,
+              height: 40.h,
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Icon(
+                Icons.directions_car_rounded,
+                size: 20.sp,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                car.displayName,
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 400.w,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (car.imageUrl != null && car.imageUrl!.isNotEmpty)
+                Container(
+                  width: double.infinity,
+                  height: 200.h,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12.r),
+                    image: DecorationImage(
+                      image: NetworkImage(car.imageUrl!),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  width: double.infinity,
+                  height: 200.h,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Icon(
+                    Icons.directions_car_outlined,
+                    size: 48.sp,
+                    color: Colors.grey.shade400,
+                  ),
+                ),
+              SizedBox(height: 16.h),
+              _buildDetailRow('Brand', car.brand),
+              _buildDetailRow('Model', car.model),
+              _buildDetailRow('Year', car.year.toString()),
+              _buildDetailRow('License Plate', car.licensePlate),
+              _buildDetailRow('Color', car.color),
+              _buildDetailRow('Fuel Type', car.fuelType),
+              _buildDetailRow('Transmission', car.transmission),
+              if (car.sellingPrice != null)
+                _buildDetailRow('Selling Price', 'Rp ${car.sellingPrice!.toStringAsFixed(0)}'),
+              if (car.condition.isNotEmpty)
+                _buildDetailRow('Condition', car.condition),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120.w,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+          Text(
+            ': ',
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<String> _getUniqueBrands() {
+    return _cars
+        .map((car) => car.brand)
+        .where((brand) => brand.isNotEmpty)
+        .toSet()
+        .toList()
+        ..sort();
+  }
+
+  List<String> _getUniqueFuelTypes() {
+    return _cars
+        .map((car) => car.fuelType)
+        .where((fuel) => fuel.isNotEmpty)
+        .toSet()
+        .toList()
+        ..sort();
+  }
+
+  List<String> _getUniqueTransmissions() {
+    return _cars
+        .map((car) => car.transmission)
+        .where((trans) => trans.isNotEmpty)
+        .toSet()
+        .toList()
+        ..sort();
   }
 
   int get _activeFilterCount {
     int count = 0;
-    if (_selectedBrand != null) count++;
-    if (_selectedModel != null) count++;
-    if (_yearFrom != null) count++;
-    if (_yearTo != null) count++;
-    if (_priceFrom != null) count++;
-    if (_priceTo != null) count++;
-    if (_fuelType != null) count++;
-    if (_transmission != null) count++;
+    if (_selectedBrandFilter != null) count++;
+    if (_selectedFuelTypeFilter != null) count++;
+    if (_selectedTransmissionFilter != null) count++;
+    if (_searchController.text.isNotEmpty) count++;
     return count;
   }
 
@@ -206,6 +305,316 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         content: Text(message),
         backgroundColor: AppTheme.errorColor,
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+      ),
+    );
+  }
+
+  Widget _buildVehicleFilters() {
+    return Container(
+      margin: EdgeInsets.all(24.w),
+      padding: EdgeInsets.all(24.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40.w,
+                height: 40.h,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Icon(
+                  Icons.search_rounded,
+                  size: 20.sp,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(width: 16.w),
+              Expanded(
+                child: Text(
+                  'Search & Filter Vehicles',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey.shade900,
+                  ),
+                ),
+              ),
+              if (_activeFilterCount > 0)
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 6.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
+                  child: Text(
+                    '$_activeFilterCount',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 20.h),
+          
+          // Search field
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(
+                color: Colors.grey.shade200,
+                width: 1,
+              ),
+            ),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by brand, model, license plate, color...',
+                hintStyle: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 14.sp,
+                ),
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  size: 20.sp,
+                  color: Colors.grey.shade400,
+                ),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(
+                          Icons.clear_rounded,
+                          size: 20.sp,
+                          color: Colors.grey.shade400,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 20.w,
+                  vertical: 16.h,
+                ),
+              ),
+              textInputAction: TextInputAction.search,
+            ),
+          ),
+          
+          SizedBox(height: 16.h),
+          
+          // Filter dropdowns - matching sales screen
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedBrandFilter,
+                    decoration: InputDecoration(
+                      labelText: 'Brand',
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                      border: InputBorder.none,
+                      labelStyle: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    isExpanded: true,
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: null,
+                        child: Text(
+                          'All Brands',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey.shade500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                      ..._getUniqueBrands()
+                          .map((brand) => DropdownMenuItem(
+                                value: brand,
+                                child: Text(
+                                  brand,
+                                  style: TextStyle(fontSize: 14.sp),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ))
+                          .toList(),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedBrandFilter = value;
+                      });
+                      _filterVehicles();
+                    },
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedFuelTypeFilter,
+                    decoration: InputDecoration(
+                      labelText: 'Fuel Type',
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                      border: InputBorder.none,
+                      labelStyle: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    isExpanded: true,
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: null,
+                        child: Text(
+                          'All Fuel Types',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey.shade500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                      ..._getUniqueFuelTypes()
+                          .map((fuel) => DropdownMenuItem(
+                                value: fuel,
+                                child: Text(
+                                  fuel,
+                                  style: TextStyle(fontSize: 14.sp),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ))
+                          .toList(),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedFuelTypeFilter = value;
+                      });
+                      _filterVehicles();
+                    },
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedTransmissionFilter,
+                    decoration: InputDecoration(
+                      labelText: 'Transmission',
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                      border: InputBorder.none,
+                      labelStyle: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    isExpanded: true,
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: null,
+                        child: Text(
+                          'All Transmissions',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey.shade500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                      ..._getUniqueTransmissions()
+                          .map((trans) => DropdownMenuItem(
+                                value: trans,
+                                child: Text(
+                                  trans,
+                                  style: TextStyle(fontSize: 14.sp),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ))
+                          .toList(),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedTransmissionFilter = value;
+                      });
+                      _filterVehicles();
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          // Clear filters button
+          if (_activeFilterCount > 0) ...[
+            SizedBox(height: 16.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: _clearFilters,
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.primaryColor,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 8.h,
+                    ),
+                  ),
+                  icon: Icon(Icons.clear_all_rounded, size: 16.sp),
+                  label: Text(
+                    'Clear All Filters',
+                    style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -215,6 +624,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     return Scaffold(
       backgroundColor: AppTheme.surfaceColor,
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppTheme.primaryGradient,
+          ),
+        ),
         title: Row(
           children: [
             Container(
@@ -225,7 +639,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Icon(
-                Icons.directions_car_rounded,
+                Icons.inventory_2_rounded,
                 size: 20.sp,
                 color: Colors.white,
               ),
@@ -296,256 +710,10 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         child: Column(
           children: [
             // Modern search and filter section
-            Container(
-              margin: EdgeInsets.all(24.w),
-              padding: EdgeInsets.all(24.w),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 40.w,
-                        height: 40.h,
-                        decoration: BoxDecoration(
-                          gradient: AppTheme.primaryGradient,
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                        child: Icon(
-                          Icons.search_rounded,
-                          size: 20.sp,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(width: 16.w),
-                      Expanded(
-                        child: Text(
-                          'Search & Filter Vehicles',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.grey.shade900,
-                          ),
-                        ),
-                      ),
-                      if (_activeFilterCount > 0)
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12.w,
-                            vertical: 6.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            borderRadius: BorderRadius.circular(20.r),
-                          ),
-                          child: Text(
-                            '$_activeFilterCount',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  SizedBox(height: 20.h),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 4,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(16.r),
-                            border: Border.all(
-                              color: Colors.grey.shade200,
-                              width: 1,
-                            ),
-                          ),
-                          child: TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              hintText: 'Search by brand, model, license plate, color...',
-                              hintStyle: TextStyle(
-                                color: Colors.grey.shade500,
-                                fontSize: 14.sp,
-                              ),
-                              prefixIcon: Icon(
-                                Icons.search_rounded,
-                                size: 20.sp,
-                                color: Colors.grey.shade400,
-                              ),
-                              suffixIcon: _searchController.text.isNotEmpty
-                                  ? IconButton(
-                                      icon: Icon(
-                                        Icons.clear_rounded,
-                                        size: 20.sp,
-                                        color: Colors.grey.shade400,
-                                      ),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        _loadCars(isRefresh: true);
-                                      },
-                                    )
-                                  : null,
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 20.w,
-                                vertical: 16.h,
-                              ),
-                            ),
-                            textInputAction: TextInputAction.search,
-                            onSubmitted: (_) => _loadCars(isRefresh: true),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: AppTheme.primaryGradient,
-                          borderRadius: BorderRadius.circular(12.r),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.primaryColor.withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          onPressed: _showFilterDialog,
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.all(16.w),
-                          ),
-                          icon: Icon(Icons.tune_rounded, size: 20.sp),
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  // Active filters display
-                  if (_activeFilterCount > 0) ...[
-                    SizedBox(height: 20.h),
-                    Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(12.r),
-                        border: Border.all(
-                          color: AppTheme.primaryColor.withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.filter_list_rounded,
-                                size: 16.sp,
-                                color: AppTheme.primaryColor,
-                              ),
-                              SizedBox(width: 8.w),
-                              Text(
-                                'Active Filters',
-                                style: TextStyle(
-                                  color: AppTheme.primaryColor,
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const Spacer(),
-                              TextButton.icon(
-                                onPressed: _clearFilters,
-                                style: TextButton.styleFrom(
-                                  foregroundColor: AppTheme.primaryColor,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 12.w,
-                                    vertical: 6.h,
-                                  ),
-                                ),
-                                icon: Icon(Icons.clear_all_rounded, size: 14.sp),
-                                label: Text(
-                                  'Clear All',
-                                  style: TextStyle(fontSize: 12.sp),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 12.h),
-                          Wrap(
-                            spacing: 8.w,
-                            runSpacing: 8.h,
-                            children: [
-                              if (_selectedBrand != null)
-                                _FilterChip(
-                                  label: 'Brand: $_selectedBrand',
-                                  onDeleted: () {
-                                    setState(() => _selectedBrand = null);
-                                    _searchCars();
-                                  },
-                                ),
-                              if (_selectedModel != null)
-                                _FilterChip(
-                                  label: 'Model: $_selectedModel',
-                                  onDeleted: () {
-                                    setState(() => _selectedModel = null);
-                                    _searchCars();
-                                  },
-                                ),
-                              if (_yearFrom != null || _yearTo != null)
-                                _FilterChip(
-                                  label: 'Year: ${_yearFrom ?? ''}-${_yearTo ?? ''}',
-                                  onDeleted: () {
-                                    setState(() {
-                                      _yearFrom = null;
-                                      _yearTo = null;
-                                    });
-                                    _searchCars();
-                                  },
-                                ),
-                              if (_fuelType != null)
-                                _FilterChip(
-                                  label: 'Fuel: $_fuelType',
-                                  onDeleted: () {
-                                    setState(() => _fuelType = null);
-                                    _searchCars();
-                                  },
-                                ),
-                              if (_transmission != null)
-                                _FilterChip(
-                                  label: 'Trans: $_transmission',
-                                  onDeleted: () {
-                                    setState(() => _transmission = null);
-                                    _searchCars();
-                                  },
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+            _buildVehicleFilters(),
             
             // Vehicle count with modern design
-            if (_cars.isNotEmpty)
+            if (_filteredCars.isNotEmpty)
               Container(
                 width: double.infinity,
                 margin: EdgeInsets.symmetric(horizontal: 24.w),
@@ -575,7 +743,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     ),
                     SizedBox(width: 12.w),
                     Text(
-                      '${_cars.length} vehicles available',
+                      '${_filteredCars.length} vehicles available',
                       style: TextStyle(
                         color: AppTheme.primaryColor,
                         fontSize: 14.sp,
@@ -590,7 +758,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             
             // Vehicle grid with 4 columns
             Expanded(
-              child: _cars.isEmpty && !_isLoading
+              child: _filteredCars.isEmpty && !_isLoading
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -603,7 +771,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                               borderRadius: BorderRadius.circular(20.r),
                             ),
                             child: Icon(
-                              Icons.directions_car_outlined,
+                              Icons.inventory_2_outlined,
                               size: 40.sp,
                               color: Colors.grey.shade400,
                             ),
@@ -636,9 +804,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                         mainAxisSpacing: 16.h,
                         childAspectRatio: 0.75,
                       ),
-                      itemCount: _cars.length + (_hasMoreData ? 1 : 0),
+                      itemCount: _filteredCars.length + (_hasMoreData ? 1 : 0),
                       itemBuilder: (context, index) {
-                        if (index == _cars.length) {
+                        if (index == _filteredCars.length) {
                           // Load more indicator
                           return Container(
                             decoration: BoxDecoration(
@@ -704,7 +872,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           );
                         }
 
-                        final car = _cars[index];
+                        final car = _filteredCars[index];
                         return InventoryCarCard(
                           car: car,
                           onTap: () => _showCarDetails(car),
@@ -714,61 +882,6 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final VoidCallback onDeleted;
-
-  const _FilterChip({
-    required this.label,
-    required this.onDeleted,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: AppTheme.primaryColor.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: AppTheme.primaryColor,
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          SizedBox(width: 6.w),
-          GestureDetector(
-            onTap: onDeleted,
-            child: Container(
-              width: 16.w,
-              height: 16.h,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor,
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Icon(
-                Icons.close_rounded,
-                size: 10.sp,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
