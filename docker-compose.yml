@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: car_showroom_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: car_showroom_pos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - pos_network
+
+volumes:
+  postgres_data:
+
+networks:
+  pos_network:
+    driver: bridge

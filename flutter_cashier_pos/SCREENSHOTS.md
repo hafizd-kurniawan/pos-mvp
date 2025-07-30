@@ -1,0 +1,266 @@
+# Flutter Cashier POS - Screenshots & UI Guide
+
+## 📱 App Screenshots
+
+### Login Screen
+```
+┌─────────────────────────────────────┐
+│          🏪 Car Showroom POS        │
+│             Cashier Portal          │
+│                                     │
+│    👤 Username: [____________]      │
+│    🔒 Password: [____________]      │
+│                                     │
+│         [   LOGIN   ]               │
+│                                     │
+│  Use your cashier credentials to    │
+│     access the POS system          │
+└─────────────────────────────────────┘
+```
+
+### Dashboard Screen
+```
+┌─────────────────────────────────────┐
+│ 🏪 Car Showroom POS      John D 👤  │
+├─────────────────────────────────────┤
+│  Welcome back, John Doe! 👋         │
+│  Ready to serve customers           │
+│  📅 Today: 2025-01-30              │
+│                                     │
+│ ┌─────────┐ ┌─────────┐ ┌─────────┐ │
+│ │Today's  │ │Available│ │Pending  │ │
+│ │Sales: 0 │ │Cars: 12 │ │Invoices │ │
+│ │txns     │ │vehicles │ │0 items  │ │
+│ └─────────┘ └─────────┘ └─────────┘ │
+│                                     │
+│ Quick Actions:                      │
+│ ┌─────────┬─────────┐ ┌─────────┬───│
+│ │💰 New   │👥 Customers│🚗 Inventory│
+│ │Sale     │Manage   │View cars│   │
+│ │Process  │customers│available│   │
+│ │vehicle  │         │         │   │
+│ │sale     │         │         │   │
+│ └─────────┴─────────┘ └─────────┴───│
+│                                     │
+│ Recent Transactions:                │
+│ ┌─────────────────────────────────┐ │
+│ │📋 No recent transactions       │ │
+│ │   Start making sales here      │ │
+│ └─────────────────────────────────┘ │
+└─────────────────────────────────────┘
+│ 🏠 | 💰 | 👥 | 🚗 | 📄 │           │
+│Dashboard Sales Customers Cars Invoices│
+```
+
+### Sales Screen
+```
+┌─────────────────────────────────────┐
+│ ← New Sale                    🔄    │
+├─────────────────────────────────────┤
+│ Select Customer                     │
+│ ┌─────────────────────────────────┐ │
+│ │🔍 Search by name, phone, email │ │
+│ │   [___________________] 🔍      │ │
+│ │                                 │ │
+│ │Quick search: [08][081][082]     │ │
+│ │                                 │ │
+│ │➕ Create New Customer            │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│ Select Vehicle                      │
+│ ┌─────────┬─────────┬─────────┐     │
+│ │📷 Honda │📷 Toyota│📷 Suzuki│     │
+│ │Civic 18 │Avanza 20│Ertiga 19│     │
+│ │ABC123XY │DEF456UV │GHI789WX │     │
+│ │Petrol•AT│Petrol•MT│Petrol•MT│     │
+│ │💰175M   │💰 85M   │💰120M   │     │
+│ │✅Ready  │✅Ready  │✅Ready  │     │
+│ └─────────┴─────────┴─────────┘     │
+│                                     │
+│ Sale Details                        │
+│ 💰 Sale Amount: [175000000____]     │
+│ 🎫 Discount: [5000000______]        │
+│                                     │
+│ Payment Method:                     │
+│ ● 💵 Cash Payment                   │
+│ ○ 🏦 Bank Transfer                  │
+│ ○ 💳 Credit/Installment             │
+│                                     │
+│ ┌─────────────────────────────────┐ │
+│ │        Total Amount             │ │
+│ │       Rp 170,000,000           │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│        [💰 PROCESS SALE]            │
+└─────────────────────────────────────┘
+```
+
+### Customer Management Screen
+```
+┌─────────────────────────────────────┐
+│ ← Customers                   🔄    │
+├─────────────────────────────────────┤
+│ 🔍 [Search customer...____] 🔍      │
+│                                     │
+│ Quick search: [08][081][082][083]   │
+│                                     │
+│ 15 customers found                  │
+│                                     │
+│ ┌─────────────────────────────────┐ │
+│ │ 👤 John Doe        CR-0001 📧   │ │
+│ │    081234567890              ►  │ │
+│ └─────────────────────────────────┘ │
+│ ┌─────────────────────────────────┐ │
+│ │ 👤 Jane Smith      CR-0002 📧   │ │
+│ │    081987654321              ►  │ │
+│ └─────────────────────────────────┘ │
+│ ┌─────────────────────────────────┐ │
+│ │ 👤 Bob Wilson      CR-0003 📧   │ │
+│ │    082111222333              ►  │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│           [Load More]               │
+│                                     │
+│                               👤➕  │
+│                         Add Customer │
+└─────────────────────────────────────┘
+```
+
+### Vehicle Inventory Screen
+```
+┌─────────────────────────────────────┐
+│ ← Car Inventory               🔄    │
+├─────────────────────────────────────┤
+│ 🔍 [Search by brand, model...] 🎛️ │
+│                                     │
+│ 24 vehicles available               │
+│                                     │
+│ ┌───────┬───────┬───────┬───────┐   │
+│ │📷     │📷     │📷     │📷     │   │
+│ │Honda  │Toyota │Suzuki │Daihatsu│  │
+│ │Civic  │Avanza │Ertiga │Xenia  │   │
+│ │2018   │2020   │2019   │2021   │   │
+│ │ABC123 │DEF456 │GHI789 │JKL012 │   │
+│ │Petrol │Petrol │Petrol │Petrol │   │
+│ │AT     │MT     │MT     │MT     │   │
+│ │175M   │85M    │120M   │78M    │   │
+│ │✅Ready│✅Ready│✅Ready│✅Ready│   │
+│ └───────┴───────┴───────┴───────┘   │
+│ ┌───────┬───────┬───────┬───────┐   │
+│ │📷     │📷     │📷     │📷     │   │
+│ │Mitsu  │Nissan │Mazda  │Isuzu  │   │
+│ │Pajero │March  │CX-5   │Panther│   │
+│ │2017   │2019   │2020   │2016   │   │
+│ │MNO345 │PQR678 │STU901 │VWX234 │   │
+│ │Diesel │Petrol │Petrol │Diesel │   │
+│ │AT     │AT     │AT     │MT     │   │
+│ │280M   │95M    │320M   │85M    │   │
+│ │✅Ready│✅Ready│✅Ready│✅Ready│   │
+│ └───────┴───────┴───────┴───────┘   │
+└─────────────────────────────────────┘
+```
+
+### Invoice Management Screen
+```
+┌─────────────────────────────────────┐
+│ ← Invoices                    🔄    │
+│ [All Invoices] [Today]              │
+├─────────────────────────────────────┤
+│ 🔍 [Invoice number...____] 🔍 🎛️  │
+│                                     │
+│ 8 invoices found                    │
+│                                     │
+│ ┌─────────────────────────────────┐ │
+│ │ SAL-20250130-001        ✅ PAID │ │
+│ │ Amount: Rp 170,000,000          │ │
+│ │ Payment: Cash                   │ │
+│ │ Date: 2025-01-30               │ │
+│ └─────────────────────────────────┘ │
+│ ┌─────────────────────────────────┐ │
+│ │ SAL-20250130-002     🟡 PENDING │ │
+│ │ Amount: Rp 95,000,000           │ │
+│ │ Payment: Bank Transfer          │ │
+│ │ Date: 2025-01-30               │ │
+│ └─────────────────────────────────┘ │
+│ ┌─────────────────────────────────┐ │
+│ │ SAL-20250129-015        ✅ PAID │ │
+│ │ Amount: Rp 120,000,000          │ │
+│ │ Payment: Cash                   │ │
+│ │ Date: 2025-01-29               │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│           [Load More]               │
+└─────────────────────────────────────┘
+```
+
+## 🎨 UI Components
+
+### Material Design 3 Theme
+- **Primary Color**: Deep Blue (#1565C0)
+- **Secondary Color**: Green (#00E676) for success states
+- **Error Color**: Red (#E53935) for errors
+- **Warning Color**: Orange (#FFA726) for warnings
+
+### Typography Scale
+- **Headline**: Bold, 28sp for main titles
+- **Title**: Semi-bold, 20sp for section headers
+- **Body**: Regular, 16sp for content
+- **Caption**: Regular, 12sp for metadata
+
+### Component Library
+```
+Cards:           Rounded 12px, elevation 2-8
+Buttons:         Rounded 8px, minimum 120x48dp
+Input Fields:    Outlined style, 16px padding
+Chips:           Rounded 16px for tags/filters
+FAB:             Material Design FAB for primary actions
+Bottom Nav:      5 tabs with icons and labels
+```
+
+### Responsive Breakpoints
+- **Mobile**: 0-450dp (single column, compact)
+- **Tablet**: 451-800dp (2-3 columns, comfortable)
+- **Desktop**: 801dp+ (3-4 columns, spacious)
+
+### Grid Layouts
+- **Vehicle Inventory**: 2 cols (mobile), 3 cols (tablet), 4 cols (desktop)
+- **Quick Actions**: 2x2 grid (mobile), 2x2 grid (tablet)
+- **Customer List**: Single column with cards
+
+## 🔄 User Flow Diagrams
+
+### Complete Sales Flow
+```
+Login → Dashboard → New Sale → Customer Search/Create → 
+Vehicle Selection → Payment Details → Generate Invoice → 
+Mark Paid → Print Receipt
+```
+
+### Customer Management Flow
+```
+Dashboard → Customers → Search/Filter → View Profile → 
+Edit Details → Save Changes
+```
+
+### Daily Operations Flow
+```
+Login → Check Dashboard Stats → Review Pending Invoices → 
+Process New Sales → Update Payment Status → End of Day
+```
+
+## 📱 Tablet Optimization
+
+### Layout Strategy
+- **Landscape Orientation**: Primary mode for cashier workstations
+- **Large Touch Targets**: 48dp minimum for accessibility
+- **Split Screen**: Customer details + vehicle selection
+- **Quick Actions**: Prominent FAB and shortcut buttons
+- **Information Density**: Balanced content per screen
+
+### Performance Considerations
+- **Image Caching**: Thumbnail generation and caching
+- **Lazy Loading**: Pagination for large lists
+- **Smooth Animations**: 60fps transitions
+- **Memory Management**: Efficient image and data handling
+
+This visual guide provides a comprehensive overview of the Flutter Cashier POS interface, optimized for tablet-based point-of-sale operations in car showrooms.
