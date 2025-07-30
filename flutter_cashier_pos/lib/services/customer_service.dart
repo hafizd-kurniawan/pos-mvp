@@ -10,9 +10,6 @@ class CustomerService {
   final AuthService _authService = AuthService();
   final LoggerService _logger = LoggerService();
 
-class CustomerService {
-  final AuthService _authService = AuthService();
-
   // Get all customers with pagination
   Future<ApiResponse<List<Customer>>> getCustomers({
     int page = 1,
