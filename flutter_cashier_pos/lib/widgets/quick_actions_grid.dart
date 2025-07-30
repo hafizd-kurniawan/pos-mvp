@@ -14,14 +14,21 @@ class QuickActionsGrid extends StatelessWidget {
       crossAxisCount: 2,
       crossAxisSpacing: 12.w,
       mainAxisSpacing: 12.h,
-      childAspectRatio: 1.5,
+      childAspectRatio: 1.4,
       children: [
         _QuickActionCard(
           icon: Icons.sell,
           title: 'New Sale',
-          subtitle: 'Process vehicle sale',
+          subtitle: 'Sell vehicle to customer',
           color: AppTheme.successColor,
           onTap: () => context.go('/dashboard/sales'),
+        ),
+        _QuickActionCard(
+          icon: Icons.shopping_cart,
+          title: 'Purchase',
+          subtitle: 'Buy from customer',
+          color: Colors.orange,
+          onTap: () => context.go('/dashboard/purchase'),
         ),
         _QuickActionCard(
           icon: Icons.people,

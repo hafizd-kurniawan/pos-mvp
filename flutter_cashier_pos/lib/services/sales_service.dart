@@ -4,34 +4,58 @@ import '../constants/app_constants.dart';
 import '../models/invoice.dart';
 import '../models/api_models.dart';
 import 'auth_service.dart';
+import 'logger_service.dart';
 
 class SalesService {
   final AuthService _authService = AuthService();
+  final LoggerService _logger = logger;
 
   // Create a sale transaction
   Future<ApiResponse<Invoice>> createSale(CreateSaleRequest request) async {
+    const operation = 'Create Sale';
+    _logger.userAction(operation, data: {
+      'customerId': request.customerId,
+      'carId': request.carId,
+      'amount': request.amount,
+      'paymentMethod': request.paymentMethod,
+    });
+
     try {
+      final stopwatch = Stopwatch()..start();
+      _logger.apiCall(AppConstants.sellEndpoint, method: 'POST', requestData: request.toJson());
+
       final response = await http.post(
         Uri.parse('${AppConstants.baseUrl}${AppConstants.sellEndpoint}'),
         headers: _authService.getAuthHeaders(),
         body: jsonEncode(request.toJson()),
       );
 
+      stopwatch.stop();
+      _logger.apiResponse(AppConstants.sellEndpoint, response.statusCode, duration: stopwatch.elapsed);
+
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 201 && data['success'] == true) {
+        _logger.info('Sale created successfully', tag: 'Sales', data: {
+          'invoiceNumber': data['data']['invoice']?['invoice_number'],
+          'customerId': request.customerId,
+          'carId': request.carId,
+        });
+
         return ApiResponse<Invoice>(
           success: true,
           message: data['message'],
           data: Invoice.fromJson(data['data']['invoice']),
         );
       } else {
+        _logger.error('Sale creation failed', tag: 'Sales', error: data['message']);
         return ApiResponse<Invoice>(
           success: false,
           message: data['message'] ?? 'Failed to create sale',
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.apiError(AppConstants.sellEndpoint, e, stackTrace: stackTrace);
       return ApiResponse<Invoice>(
         success: false,
         message: 'Network error: $e',

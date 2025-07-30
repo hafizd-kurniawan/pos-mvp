@@ -8,6 +8,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/sales_screen.dart';
+import 'screens/purchase_screen.dart';
 import 'screens/customer_screen.dart';
 import 'screens/inventory_screen.dart';
 import 'screens/invoice_screen.dart';
@@ -46,6 +47,10 @@ class MyApp extends ConsumerWidget {
           GoRoute(
             path: 'sales',
             builder: (context, state) => const SalesScreen(),
+          ),
+          GoRoute(
+            path: 'purchase',
+            builder: (context, state) => const PurchaseScreen(),
           ),
           GoRoute(
             path: 'customers',

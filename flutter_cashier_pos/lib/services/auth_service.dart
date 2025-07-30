@@ -3,9 +3,11 @@ import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
 import '../constants/app_constants.dart';
 import '../models/user.dart';
+import 'logger_service.dart';
 
 class AuthService {
   final Box _authBox = Hive.box(AppConstants.authBox);
+  final LoggerService _logger = logger;
 
   // Check if user is logged in
   bool isLoggedIn() {
@@ -29,7 +31,15 @@ class AuthService {
 
   // Login user
   Future<Map<String, dynamic>> login(String username, String password) async {
+    _logger.authEvent('Login attempt', userId: username);
+    
     try {
+      final stopwatch = Stopwatch()..start();
+      _logger.apiCall(AppConstants.authEndpoint, method: 'POST', requestData: {
+        'username': username,
+        'password': '[HIDDEN]'
+      });
+
       final response = await http.post(
         Uri.parse('${AppConstants.baseUrl}${AppConstants.authEndpoint}'),
         headers: {
@@ -41,6 +51,9 @@ class AuthService {
         }),
       );
 
+      stopwatch.stop();
+      _logger.apiResponse(AppConstants.authEndpoint, response.statusCode, duration: stopwatch.elapsed);
+
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
@@ -51,18 +64,24 @@ class AuthService {
         await _authBox.put(AppConstants.tokenKey, token);
         await _authBox.put(AppConstants.userKey, userData);
 
+        final user = User.fromJson(userData);
+        _logger.authEvent('Login successful', userId: user.id);
+        _logger.dataEvent('Store', 'User session', id: user.id);
+
         return {
           'success': true,
           'message': 'Login successful',
-          'user': User.fromJson(userData),
+          'user': user,
         };
       } else {
+        _logger.authEvent('Login failed: ${data['message']}', userId: username);
         return {
           'success': false,
           'message': data['message'] ?? 'Login failed',
         };
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.apiError(AppConstants.authEndpoint, e, stackTrace: stackTrace);
       return {
         'success': false,
         'message': 'Network error: $e',
@@ -72,8 +91,13 @@ class AuthService {
 
   // Logout user
   Future<void> logout() async {
+    final user = getCurrentUser();
+    _logger.authEvent('Logout', userId: user?.id);
+    
     await _authBox.delete(AppConstants.tokenKey);
     await _authBox.delete(AppConstants.userKey);
+    
+    _logger.dataEvent('Clear', 'User session');
   }
 
   // Get authorization headers
