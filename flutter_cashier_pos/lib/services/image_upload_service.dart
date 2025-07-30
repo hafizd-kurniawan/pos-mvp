@@ -130,9 +130,19 @@ class ImageUploadService {
       // Add form fields
       request.fields['entity_type'] = entityType;
       request.fields['entity_id'] = entityId;
-      request.fields['uploaded_by'] = _authService.getCurrentUser()?.id ?? '';
-      if (photoType != null) request.fields['photo_type'] = photoType;
-      if (description != null) request.fields['caption'] = description;
+      
+      // Handle potential null user ID
+      final currentUser = _authService.getCurrentUser();
+      if (currentUser != null && currentUser.id.isNotEmpty) {
+        request.fields['uploaded_by'] = currentUser.id;
+      }
+      
+      if (photoType != null && photoType.isNotEmpty) {
+        request.fields['photo_type'] = photoType;
+      }
+      if (description != null && description.isNotEmpty) {
+        request.fields['caption'] = description;
+      }
 
       // Add file - handle web vs mobile platforms differently
       late http.MultipartFile file;
@@ -141,7 +151,14 @@ class ImageUploadService {
         final bytes = await imageFile.readAsBytes();
         // Determine content type from file extension
         String contentType = 'image/jpeg'; // default
-        final extension = imageFile.name.split('.').last.toLowerCase();
+        String fileName = imageFile.name;
+        
+        // Handle potential null filename
+        if (fileName.isEmpty) {
+          fileName = 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        }
+        
+        final extension = fileName.split('.').last.toLowerCase();
         switch (extension) {
           case 'png':
             contentType = 'image/png';
@@ -161,15 +178,20 @@ class ImageUploadService {
         file = http.MultipartFile.fromBytes(
           'file', // Backend expects 'file' field name
           bytes,
-          filename: imageFile.name,
+          filename: fileName,
           contentType: MediaType.parse(contentType),
         );
       } else {
         // For mobile, use file path
+        String fileName = imageFile.name;
+        if (fileName.isEmpty) {
+          fileName = imageFile.path.split('/').last;
+        }
+        
         file = await http.MultipartFile.fromPath(
           'file', // Backend expects 'file' field name
           imageFile.path,
-          filename: imageFile.name,
+          filename: fileName,
         );
       }
       request.files.add(file);

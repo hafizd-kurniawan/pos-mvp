@@ -47,10 +47,8 @@ class VehicleGridWidget extends StatelessWidget {
   }
 
   int _getCrossAxisCount(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth > 1200) return 4;
-    if (screenWidth > 800) return 3;
-    return 2;
+    // Use 4 columns as specifically requested
+    return 4;
   }
 
   Widget _buildEmptyState() {
