@@ -13,7 +13,7 @@ import '../services/logger_service.dart';
 import '../widgets/customer_selection_widget.dart';
 import '../widgets/car_selection_card.dart';
 import '../widgets/loading_overlay.dart';
-import '../theme/app_theme.dart';
+import '../utils/app_theme.dart';
 
 class PurchaseScreen extends StatefulWidget {
   const PurchaseScreen({Key? key}) : super(key: key);
