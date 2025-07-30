@@ -199,25 +199,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               items: _availableRoles.map((role) {
                                 return DropdownMenuItem<String>(
                                   value: role['value'],
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        role['label']!,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14.sp,
-                                        ),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    child: Text(
+                                      role['label']!,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14.sp,
                                       ),
-                                      Text(
-                                        role['description']!,
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                          fontSize: 12.sp,
-                                        ),
-                                      ),
-                                    ],
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
                                   ),
                                 );
                               }).toList(),

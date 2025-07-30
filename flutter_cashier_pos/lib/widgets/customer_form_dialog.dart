@@ -235,7 +235,14 @@ class _CustomerFormDialogState extends State<CustomerFormDialog> {
                           items: _identityTypes.map((type) {
                             return DropdownMenuItem(
                               value: type,
-                              child: Text(type),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Text(
+                                  type,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
                             );
                           }).toList(),
                           onChanged: (value) {

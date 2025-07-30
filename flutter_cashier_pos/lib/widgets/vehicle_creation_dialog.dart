@@ -392,7 +392,14 @@ class _VehicleCreationDialogState extends State<VehicleCreationDialog> {
                               ),
                               items: _fuelTypes.map((type) => DropdownMenuItem(
                                 value: type,
-                                child: Text(type.toUpperCase()),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    type.toUpperCase(),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
                               )).toList(),
                               onChanged: (value) => setState(() => _selectedFuelType = value!),
                             ),
@@ -408,7 +415,14 @@ class _VehicleCreationDialogState extends State<VehicleCreationDialog> {
                               ),
                               items: _transmissions.map((type) => DropdownMenuItem(
                                 value: type,
-                                child: Text(type.toUpperCase()),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    type.toUpperCase(),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
                               )).toList(),
                               onChanged: (value) => setState(() => _selectedTransmission = value!),
                             ),
@@ -450,7 +464,14 @@ class _VehicleCreationDialogState extends State<VehicleCreationDialog> {
                               ),
                               items: _conditions.map((condition) => DropdownMenuItem(
                                 value: condition,
-                                child: Text(condition.toUpperCase()),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    condition.toUpperCase(),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
                               )).toList(),
                               onChanged: (value) => setState(() => _selectedCondition = value!),
                             ),

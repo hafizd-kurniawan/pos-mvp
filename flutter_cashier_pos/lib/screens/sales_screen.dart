@@ -760,12 +760,19 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                     value: _selectedBrandFilter,
                     decoration: const InputDecoration(
                       labelText: 'Brand',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     ),
                     items: _getUniqueBrands()
                         .map((brand) => DropdownMenuItem(
                               value: brand,
-                              child: Text(brand),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Text(
+                                  brand ?? '',
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
                             ))
                         .toList(),
                     onChanged: (value) {
@@ -782,12 +789,19 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                     value: _selectedFuelTypeFilter,
                     decoration: const InputDecoration(
                       labelText: 'Fuel Type',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     ),
                     items: _getUniqueFuelTypes()
                         .map((fuel) => DropdownMenuItem(
                               value: fuel,
-                              child: Text(fuel),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Text(
+                                  fuel ?? '',
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
                             ))
                         .toList(),
                     onChanged: (value) {
@@ -804,12 +818,19 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                     value: _selectedTransmissionFilter,
                     decoration: const InputDecoration(
                       labelText: 'Transmission',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     ),
                     items: _getUniqueTransmissions()
                         .map((trans) => DropdownMenuItem(
                               value: trans,
-                              child: Text(trans),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Text(
+                                  trans ?? '',
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
                             ))
                         .toList(),
                     onChanged: (value) {
@@ -829,15 +850,30 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
   }
 
   List<String> _getUniqueBrands() {
-    return _availableCars.map((car) => car.brand).toSet().toList()..sort();
+    return _availableCars
+        .map((car) => car.brand)
+        .where((brand) => brand.isNotEmpty)
+        .toSet()
+        .toList()
+        ..sort();
   }
 
   List<String> _getUniqueFuelTypes() {
-    return _availableCars.map((car) => car.fuelType).toSet().toList()..sort();
+    return _availableCars
+        .map((car) => car.fuelType)
+        .where((fuel) => fuel.isNotEmpty)
+        .toSet()
+        .toList()
+        ..sort();
   }
 
   List<String> _getUniqueTransmissions() {
-    return _availableCars.map((car) => car.transmission).toSet().toList()..sort();
+    return _availableCars
+        .map((car) => car.transmission)
+        .where((trans) => trans.isNotEmpty)
+        .toSet()
+        .toList()
+        ..sort();
   }
 
   @override

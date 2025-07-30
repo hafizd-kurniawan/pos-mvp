@@ -1285,7 +1285,14 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
               items: AppConstants.paymentMethods.map((method) {
                 return DropdownMenuItem(
                   value: method,
-                  child: Text(method.toUpperCase()),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      method.toUpperCase(),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
                 );
               }).toList(),
               onChanged: (value) {
