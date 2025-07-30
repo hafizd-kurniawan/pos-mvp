@@ -181,6 +181,7 @@ class AppTheme {
   }
   
   // Common colors for status indicators
+  static const Color primaryColor = Color(AppConstants.primaryColorValue);
   static const Color successColor = Color(AppConstants.accentColorValue);
   static const Color errorColor = Color(AppConstants.errorColorValue);
   static const Color warningColor = Color(AppConstants.warningColorValue);
