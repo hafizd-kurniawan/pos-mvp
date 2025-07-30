@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:image_picker/image_picker.dart';
 import '../constants/app_constants.dart';
 import '../models/car.dart';
 import '../models/customer.dart';
@@ -11,7 +10,6 @@ import '../services/customer_service.dart';
 import '../services/car_service.dart';
 import '../services/auth_service.dart';
 import '../services/logger_service.dart';
-import '../services/image_upload_service.dart';
 import '../services/work_order_service.dart';
 import '../services/user_service.dart';
 import '../widgets/customer_selection_widget.dart';
@@ -19,7 +17,6 @@ import '../widgets/car_selection_card.dart';
 import '../widgets/loading_overlay.dart';
 import '../widgets/inline_customer_creation_widget.dart';
 import '../widgets/vehicle_grid_widget.dart';
-import '../widgets/photo_upload_widget.dart';
 import '../widgets/vehicle_creation_dialog.dart';
 import '../utils/app_theme.dart';
 
@@ -38,7 +35,6 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
   final CustomerService _customerService = CustomerService();
   final CarService _carService = CarService();
   final AuthService _authService = AuthService();
-  final ImageUploadService _imageService = ImageUploadService();
   final WorkOrderService _workOrderService = WorkOrderService();
   final UserService _userService = UserService();
   final LoggerService _logger = logger;
@@ -63,9 +59,6 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
   List<Car> _customerCars = [];
   bool _loadingCars = false;
   User? _currentUser;
-  
-  // Photo upload
-  List<XFile> _selectedPhotos = [];
 
   // Animation controllers
   late AnimationController _slideController;
@@ -177,8 +170,6 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
       'amount': double.tryParse(_amountController.text),
       'paymentMethod': _selectedPaymentMethod,
       'purchaseSource': _purchaseSource.toString(),
-      'hasPhotos': _selectedPhotos.isNotEmpty,
-      'photoCount': _selectedPhotos.length,
     });
 
     try {
@@ -200,11 +191,6 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
           'purchaseSource': _purchaseSource.toString(),
         });
 
-        // Upload photos if any selected
-        if (_selectedPhotos.isNotEmpty) {
-          await _uploadPhotos(_selectedCar!.id);
-        }
-
         _showSuccessDialog(response.data!);
         _resetForm();
       } else {
@@ -219,41 +205,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
     }
   }
 
-  Future<void> _uploadPhotos(String carId) async {
-    try {
-      _logger.info('Uploading photos for purchased vehicle', tag: 'Purchase', data: {
-        'carId': carId,
-        'photoCount': _selectedPhotos.length,
-      });
 
-      final photoTypes = ['front', 'back', 'left', 'right', 'interior', 'engine', 'dashboard', 'damage'];
-      final typesToUse = _selectedPhotos.length <= photoTypes.length 
-          ? photoTypes.take(_selectedPhotos.length).toList()
-          : List.generate(_selectedPhotos.length, (i) => 'photo_${i + 1}');
-
-      final response = await _imageService.uploadMultipleImages(
-        imageFiles: _selectedPhotos,
-        entityType: 'car',
-        entityId: carId,
-        photoTypes: typesToUse,
-        description: 'Vehicle purchase documentation',
-      );
-
-      if (response.isSuccess) {
-        _logger.info('Photos uploaded successfully', tag: 'Purchase', data: {
-          'carId': carId,
-          'uploadedCount': response.data?.length ?? 0,
-        });
-      } else {
-        _logger.warning('Photo upload failed', tag: 'Purchase', data: {
-          'carId': carId,
-          'error': response.message,
-        });
-      }
-    } catch (e, stackTrace) {
-      _logger.error('Photo upload error', tag: 'Purchase', error: e, stackTrace: stackTrace);
-    }
-  }
 
   void _resetForm() {
     _formKey.currentState?.reset();
@@ -265,7 +217,6 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
       _selectedPaymentMethod = AppConstants.paymentMethods[0];
       _purchaseSource = PurchaseSource.fromSupplier;
       _showCustomerCreation = false;
-      _selectedPhotos.clear();
       _customerCars.clear();
     });
     _loadAvailableCars(); // Refresh car list
@@ -340,10 +291,6 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
             if (_selectedCustomer != null) ...[
               SizedBox(height: 4.h),
               Text('From: ${_selectedCustomer!.name}'),
-            ],
-            if (_selectedPhotos.isNotEmpty) ...[
-              SizedBox(height: 4.h),
-              Text('Photos uploaded: ${_selectedPhotos.length}'),
             ],
             SizedBox(height: 16.h),
             
@@ -910,6 +857,19 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
         elevation: 0,
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () {
+            // Clear customer selection and related data when close button is pressed
+            setState(() {
+              _selectedCustomer = null;
+              _selectedCar = null;
+              _customerCars.clear();
+              _showCustomerCreation = false;
+            });
+            Navigator.of(context).pop();
+          },
+        ),
       ),
       body: LoadingOverlay(
         isLoading: _isLoading,
@@ -936,10 +896,6 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
 
                   // Vehicle Selection
                   _buildVehicleSelection(),
-                  SizedBox(height: 20.h),
-
-                  // Photo Upload Section
-                  _buildPhotoUploadSection(),
                   SizedBox(height: 20.h),
 
                   // Purchase Details
@@ -1272,20 +1228,6 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildPhotoUploadSection() {
-    return PhotoUploadWidget(
-      onPhotosSelected: (photos) {
-        setState(() => _selectedPhotos = photos);
-        _logger.userAction('Photos selected for purchase', data: {
-          'photoCount': photos.length,
-          'fileNames': photos.map((p) => p.name).toList(),
-        });
-      },
-      allowMultiple: true,
-      title: 'Vehicle Documentation',
-      subtitle: 'Upload photos of the vehicle being purchased (optional)',
-    );
-  }
 
   Widget _buildPurchaseDetails() {
     return Card(
