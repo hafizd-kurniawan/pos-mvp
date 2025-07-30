@@ -24,25 +24,37 @@ class Customer {
   });
 
   factory Customer.fromJson(Map<String, dynamic> json) {
+    // Handle backend first_name/last_name to frontend name mapping
+    final firstName = json['first_name']?.toString() ?? '';
+    final lastName = json['last_name']?.toString() ?? '';
+    final fullName = '$firstName $lastName'.trim();
+    
     return Customer(
-      id: json['id'],
-      customerCode: json['customer_code'],
-      name: json['name'],
-      email: json['email'],
-      phone: json['phone'],
-      address: json['address'],
-      identityType: json['identity_type'],
-      identityNumber: json['identity_number'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      id: json['id']?.toString() ?? '',
+      customerCode: json['customer_code']?.toString() ?? '',
+      name: fullName.isNotEmpty ? fullName : json['name']?.toString() ?? 'Unknown Customer',
+      email: json['email']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
+      address: json['address']?.toString(),
+      identityType: json['identity_type']?.toString(),
+      identityNumber: json['identity_number']?.toString(),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 
   Map<String, dynamic> toJson() {
+    // Split name back to first_name and last_name for backend compatibility
+    final nameParts = name.trim().split(' ');
+    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    
     return {
       'id': id,
       'customer_code': customerCode,
-      'name': name,
+      'first_name': firstName,
+      'last_name': lastName,
+      'name': name, // Keep both for compatibility
       'email': email,
       'phone': phone,
       'address': address,

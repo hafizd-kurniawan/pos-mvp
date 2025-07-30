@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
+import '../services/logger_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/loading_overlay.dart';
 
@@ -18,10 +19,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  final LoggerService _logger = LoggerService();
   
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
+  String? _selectedRole;
+
+  // Available roles for this POS system
+  final List<Map<String, String>> _availableRoles = [
+    {'value': 'cashier', 'label': 'Cashier', 'description': 'Handle sales and customer transactions'},
+    {'value': 'mechanic', 'label': 'Mechanic', 'description': 'Manage work orders and vehicle repairs'},
+    {'value': 'manager', 'label': 'Manager', 'description': 'Oversee operations and reports'},
+    {'value': 'admin', 'label': 'Administrator', 'description': 'Full system access and configuration'},
+    {'value': 'salesperson', 'label': 'Sales Person', 'description': 'Vehicle sales and customer management'},
+  ];
 
   @override
   void dispose() {
@@ -39,6 +51,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
+      _logger.authEvent('Login attempt', userId: _usernameController.text.trim());
+      
       final result = await _authService.login(
         _usernameController.text.trim(),
         _passwordController.text,
@@ -47,34 +61,56 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (result['success'] == true) {
         final user = result['user'];
         
-        // Check if user is cashier or mechanic
-        if (user.role != 'cashier' && user.role != 'mechanic') {
+        _logger.authEvent('Login successful', userId: user.id);
+        _logger.info('User logged in: ${user.username} (${user.role})', tag: 'LoginScreen');
+        
+        // Check if selected role matches user's actual role (if role was selected)
+        if (_selectedRole != null && user.role != _selectedRole) {
           setState(() {
-            _errorMessage = 'Access denied. This app is for cashiers and mechanics only.';
+            _errorMessage = 'Access denied. Your account role (${user.roleDisplayName}) does not match the selected role.';
             _isLoading = false;
           });
+          _logger.warning('Role mismatch: user=${user.role}, selected=$_selectedRole', tag: 'LoginScreen');
           return;
         }
 
-        // Navigate to appropriate dashboard
+        // Navigate to appropriate dashboard based on user role
         if (mounted) {
-          if (user.role == 'mechanic') {
-            context.go('/mechanic-dashboard');
-          } else {
-            context.go('/dashboard');
+          switch (user.role) {
+            case 'mechanic':
+              context.go('/mechanic-dashboard');
+              break;
+            case 'cashier':
+            case 'admin':
+            case 'manager':
+            case 'salesperson':
+              context.go('/dashboard');
+              break;
+            default:
+              setState(() {
+                _errorMessage = 'Access denied. Role "${user.role}" is not supported in this application.';
+                _isLoading = false;
+              });
+              _logger.warning('Unsupported role: ${user.role}', tag: 'LoginScreen');
+              return;
           }
         }
       } else {
+        final errorMessage = result['message'] ?? 'Login failed';
         setState(() {
-          _errorMessage = result['message'] ?? 'Login failed';
+          _errorMessage = errorMessage;
           _isLoading = false;
         });
+        _logger.authEvent('Login failed', userId: _usernameController.text.trim());
+        _logger.error('Login failed: $errorMessage', tag: 'LoginScreen');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      final errorMessage = 'Login error: $e';
       setState(() {
-        _errorMessage = 'Login error: $e';
+        _errorMessage = errorMessage;
         _isLoading = false;
       });
+      _logger.error('Login exception: $e', tag: 'LoginScreen', error: e, stackTrace: stackTrace);
     }
   }
 
@@ -141,6 +177,60 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           
                           SizedBox(height: 32.h),
+                          
+                          // Role selection (optional)
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: DropdownButtonFormField<String>(
+                              value: _selectedRole,
+                              decoration: InputDecoration(
+                                labelText: 'Login as (Optional)',
+                                prefixIcon: Icon(
+                                  Icons.work,
+                                  size: 20.sp,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                              ),
+                              hint: Text('Select your role'),
+                              items: _availableRoles.map((role) {
+                                return DropdownMenuItem<String>(
+                                  value: role['value'],
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        role['label']!,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14.sp,
+                                        ),
+                                      ),
+                                      Text(
+                                        role['description']!,
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedRole = value;
+                                });
+                                _logger.userAction('Role selected', data: value);
+                              },
+                            ),
+                          ),
+                          
+                          SizedBox(height: 16.h),
                           
                           // Username field
                           TextFormField(
@@ -253,7 +343,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           
                           // Help text
                           Text(
-                            'Use your cashier or mechanic credentials to access the system',
+                            'Use your credentials to access the system. Role selection is optional - you will be automatically directed based on your account permissions.',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Colors.grey.shade600,
                             ),
