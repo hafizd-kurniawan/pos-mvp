@@ -48,7 +48,7 @@ class SalesService {
           data: Invoice.fromJson(data['data']['invoice']),
         );
       } else {
-        _logger.apiError(AppConstants.sellEndpoint, response.statusCode, data['message'] ?? 'Failed to create sale', response: data);
+        _logger.apiError(AppConstants.sellEndpoint, statusCode: response.statusCode, error: data['message'] ?? 'Failed to create sale', response: data);
         return ApiResponse<Invoice>(
           success: false,
           message: data['message'] ?? 'Failed to create sale',
@@ -191,7 +191,7 @@ class SalesService {
   }
 
   // Calculate total amount with discount
-  double calculateTotalAmount(double amount, double discountAmount) {
+  double calculateTotalAmount(double amount, [double discountAmount = 0]) {
     return amount - discountAmount;
   }
 

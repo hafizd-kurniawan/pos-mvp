@@ -47,7 +47,7 @@ class PurchaseService {
           data: data['data'], // Contains invoice, car, transaction data
         );
       } else {
-        _logger.apiError(AppConstants.buyEndpoint, response.statusCode, data['message'] ?? 'Failed to create purchase', response: data);
+        _logger.apiError(AppConstants.buyEndpoint, statusCode: response.statusCode, error: data['message'] ?? 'Failed to create purchase', response: data);
         return ApiResponse<Map<String, dynamic>>(
           success: false,
           message: data['message'] ?? 'Failed to create purchase',
@@ -123,7 +123,7 @@ class PurchaseService {
         );
       }
     } catch (e, stackTrace) {
-      _logger.apiError('/buy-sell/purchases', e, stackTrace: stackTrace);
+      _logger.apiError('/buy-sell/purchases', error: e, stackTrace: stackTrace);
       return ApiResponse<List<Invoice>>(
         success: false,
         message: 'Network error: $e',
@@ -168,7 +168,7 @@ class PurchaseService {
         );
       }
     } catch (e, stackTrace) {
-      _logger.apiError('${AppConstants.carsEndpoint}/available', e, stackTrace: stackTrace);
+      _logger.apiError('${AppConstants.carsEndpoint}/available', error: e, stackTrace: stackTrace);
       return ApiResponse<List<Car>>(
         success: false,
         message: 'Network error: $e',
@@ -255,7 +255,7 @@ class PurchaseService {
         );
       }
     } catch (e, stackTrace) {
-      _logger.apiError('/buy-sell/purchases/summary', e, stackTrace: stackTrace);
+      _logger.apiError('/buy-sell/purchases/summary', error: e, stackTrace: stackTrace);
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Network error: $e',
@@ -309,7 +309,7 @@ class PurchaseService {
         );
       }
     } catch (e, stackTrace) {
-      _logger.apiError('${AppConstants.invoicesEndpoint}/number', e, stackTrace: stackTrace);
+      _logger.apiError('${AppConstants.invoicesEndpoint}/number', error: e, stackTrace: stackTrace);
       return ApiResponse<Invoice>(
         success: false,
         message: 'Network error: $e',

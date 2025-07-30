@@ -73,8 +73,26 @@ class LoggerService {
     }
   }
 
-  void apiError(String endpoint, dynamic error, {StackTrace? stackTrace}) {
-    this.error('API Error: $endpoint', tag: 'API', error: error, stackTrace: stackTrace);
+  void apiError(String endpoint, {dynamic error, int? statusCode, StackTrace? stackTrace, dynamic response}) {
+    String errorMessage;
+    if (statusCode != null) {
+      errorMessage = 'API Error: $endpoint (Status: $statusCode)';
+      if (error is String) {
+        errorMessage += ' - $error';
+      }
+    } else {
+      errorMessage = 'API Error: $endpoint';
+    }
+    
+    this.error(errorMessage, tag: 'API', error: error, stackTrace: stackTrace);
+    
+    if (response != null && kDebugMode) {
+      print('🔴 API_RESPONSE: $response');
+    }
+    
+    if (statusCode != null && kDebugMode) {
+      print('🔴 STATUS_CODE: $statusCode');
+    }
   }
 
   void navigationEvent(String from, String to) {
@@ -91,14 +109,6 @@ class LoggerService {
 
   void uiError(String widget, String error, {StackTrace? stackTrace}) {
     this.error('UI Error in $widget: $error', tag: 'UI', error: error, stackTrace: stackTrace);
-  }
-
-  void apiError(String endpoint, int? statusCode, String error, {dynamic response}) {
-    final errorMessage = 'API Error: $endpoint (${statusCode ?? 'Unknown'})';
-    this.error(errorMessage, tag: 'API', error: error);
-    if (response != null && kDebugMode) {
-      print('🔴 API_RESPONSE: $response');
-    }
   }
 
   void networkError(String endpoint, String error) {

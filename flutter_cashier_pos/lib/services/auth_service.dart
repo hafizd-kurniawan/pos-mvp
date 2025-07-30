@@ -81,7 +81,7 @@ class AuthService {
         };
       }
     } catch (e, stackTrace) {
-      _logger.apiError(AppConstants.authEndpoint, e, stackTrace: stackTrace);
+      _logger.apiError(AppConstants.authEndpoint, error: e, stackTrace: stackTrace);
       return {
         'success': false,
         'message': 'Network error: $e',
