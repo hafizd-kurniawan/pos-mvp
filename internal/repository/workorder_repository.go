@@ -19,17 +19,11 @@ func NewWorkOrderRepository(db *sqlx.DB) *WorkOrderRepository {
 
 func (r *WorkOrderRepository) Create(workOrder *model.WorkOrder) error {
 	query := `
-		INSERT INTO work_orders (work_order_number, car_id, mechanic_id, assigned_by, description, labor_cost, parts_cost, total_cost, status, progress, notes)
-		VALUES (:work_order_number, :car_id, :mechanic_id, :assigned_by, :description, :labor_cost, :parts_cost, :total_cost, :status, :progress, :notes)
-		RETURNING id, created_at, updated_at`
+		INSERT INTO work_orders (id, work_order_number, car_id, mechanic_id, assigned_by, description, labor_cost, parts_cost, total_cost, status, progress, notes, created_at, updated_at)
+		VALUES (:id, :work_order_number, :car_id, :mechanic_id, :assigned_by, :description, :labor_cost, :parts_cost, :total_cost, :status, :progress, :notes, :created_at, :updated_at)`
 	
-	stmt, err := r.db.PrepareNamed(query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	
-	return stmt.Get(workOrder, workOrder)
+	_, err := r.db.NamedExec(query, workOrder)
+	return err
 }
 
 func (r *WorkOrderRepository) GetByID(id uuid.UUID) (*model.WorkOrder, error) {
