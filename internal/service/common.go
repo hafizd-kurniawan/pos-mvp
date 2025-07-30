@@ -31,15 +31,22 @@ type PaginatedResponse struct {
 
 // Create Request DTOs
 type CreateCarRequest struct {
-	Brand       string  `json:"brand" binding:"required"`
-	Model       string  `json:"model" binding:"required"`
-	Year        int     `json:"year" binding:"required,min=1900,max=2030"`
-	Color       string  `json:"color" binding:"required"`
-	Price       float64 `json:"price" binding:"required,gt=0"`
-	Mileage     int     `json:"mileage" binding:"min=0"`
-	VIN         string  `json:"vin" binding:"required,len=17"`
-	Status      string  `json:"status" binding:"omitempty,oneof=available sold reserved"`
-	Description string  `json:"description"`
+	LicensePlate string     `json:"license_plate" binding:"required"`
+	Brand        string     `json:"brand" binding:"required"`
+	Model        string     `json:"model" binding:"required"`
+	Year         int        `json:"year" binding:"required,min=1900,max=2030"`
+	Color        string     `json:"color" binding:"required"`
+	Price        float64    `json:"price" binding:"required,gt=0"`
+	Mileage      int        `json:"mileage" binding:"min=0"`
+	VIN          string     `json:"vin"`
+	EngineNumber string     `json:"engine_number"`
+	FuelType     string     `json:"fuel_type" binding:"required"`
+	Transmission string     `json:"transmission" binding:"required"`
+	Condition    string     `json:"condition"`
+	Status       string     `json:"status" binding:"omitempty,oneof=available sold reserved in_repair"`
+	Description  string     `json:"description"`
+	Notes        string     `json:"notes"`
+	CustomerID   *uuid.UUID `json:"customer_id,omitempty"`
 }
 
 type UpdateCarRequest struct {

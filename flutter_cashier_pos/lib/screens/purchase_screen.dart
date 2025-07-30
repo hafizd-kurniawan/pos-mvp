@@ -20,6 +20,7 @@ import '../widgets/loading_overlay.dart';
 import '../widgets/inline_customer_creation_widget.dart';
 import '../widgets/vehicle_grid_widget.dart';
 import '../widgets/photo_upload_widget.dart';
+import '../widgets/vehicle_creation_dialog.dart';
 import '../utils/app_theme.dart';
 
 // Purchase source selection
@@ -289,43 +290,111 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Purchase Invoice: ${invoice['invoice_number']}'),
-            SizedBox(height: 8.h),
-            Text('Amount: Rp ${_formatCurrency(invoice['total_amount'])}'),
-            SizedBox(height: 8.h),
-            Text('Payment: $_selectedPaymentMethod'),
-            SizedBox(height: 8.h),
-            Text('Source: ${_purchaseSource == PurchaseSource.fromCustomer ? 'Customer' : 'Supplier'}'),
-            if (_selectedCustomer != null) ...[
-              SizedBox(height: 8.h),
-              Text('From: ${_selectedCustomer!.name}'),
-            ],
-            if (_selectedPhotos.isNotEmpty) ...[
-              SizedBox(height: 8.h),
-              Text('Photos uploaded: ${_selectedPhotos.length}'),
-            ],
-            SizedBox(height: 16.h),
+            // Invoice notification
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
+                color: AppTheme.successColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+                border: Border.all(color: AppTheme.successColor.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.receipt, color: AppTheme.successColor, size: 20.sp),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '✅ Invoice Generated Successfully!',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.successColor,
+                          ),
+                        ),
+                        Text(
+                          'Invoice Number: ${invoice['invoice_number']}',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: AppTheme.successColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 12.h),
+            
+            // Purchase details
+            Text('Purchase Details:', style: TextStyle(fontWeight: FontWeight.w600)),
+            SizedBox(height: 8.h),
+            Text('Amount: Rp ${_formatCurrency(invoice['total_amount'])}'),
+            SizedBox(height: 4.h),
+            Text('Payment: $_selectedPaymentMethod'),
+            SizedBox(height: 4.h),
+            Text('Source: ${_purchaseSource == PurchaseSource.fromCustomer ? 'Customer' : 'Supplier'}'),
+            if (_selectedCustomer != null) ...[
+              SizedBox(height: 4.h),
+              Text('From: ${_selectedCustomer!.name}'),
+            ],
+            if (_selectedPhotos.isNotEmpty) ...[
+              SizedBox(height: 4.h),
+              Text('Photos uploaded: ${_selectedPhotos.length}'),
+            ],
+            SizedBox(height: 16.h),
+            
+            // Service assessment (mandatory for customer purchases)
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: _purchaseSource == PurchaseSource.fromCustomer 
+                    ? AppTheme.warningColor.withOpacity(0.1)
+                    : AppTheme.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: _purchaseSource == PurchaseSource.fromCustomer 
+                      ? AppTheme.warningColor.withOpacity(0.3)
+                      : AppTheme.primaryColor.withOpacity(0.3)
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Service Assessment Required',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryColor,
-                    ),
+                  Row(
+                    children: [
+                      Icon(
+                        _purchaseSource == PurchaseSource.fromCustomer 
+                            ? Icons.build 
+                            : Icons.assessment,
+                        color: _purchaseSource == PurchaseSource.fromCustomer 
+                            ? AppTheme.warningColor 
+                            : AppTheme.primaryColor,
+                        size: 18.sp,
+                      ),
+                      SizedBox(width: 8.w),
+                      Text(
+                        _purchaseSource == PurchaseSource.fromCustomer 
+                            ? 'Service Assessment Required'
+                            : 'Vehicle Status Update',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: _purchaseSource == PurchaseSource.fromCustomer 
+                              ? AppTheme.warningColor 
+                              : AppTheme.primaryColor,
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    'Does this vehicle need service/repair before it can be sold?',
+                    _purchaseSource == PurchaseSource.fromCustomer 
+                        ? 'Customer vehicles must be assessed for service needs before sale'
+                        : 'Does this vehicle need service/repair before it can be sold?',
                     style: TextStyle(fontSize: 12.sp, color: Colors.grey[700]),
                   ),
                 ],
@@ -358,7 +427,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
                     _handleReadyForSale(carData, invoice);
                   },
                   icon: Icon(Icons.sell, color: AppTheme.successColor),
-                  label: Text('Ready to Sell'),
+                  label: Text(_purchaseSource == PurchaseSource.fromCustomer ? 'Ready to Sell' : 'Available for Sale'),
                   style: TextButton.styleFrom(
                     foregroundColor: AppTheme.successColor,
                     backgroundColor: AppTheme.successColor.withOpacity(0.1),
@@ -774,6 +843,59 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
     }
   }
 
+  void _showVehicleCreationDialog() {
+    // Validate customer selection for customer vehicles
+    if (_purchaseSource == PurchaseSource.fromCustomer && _selectedCustomer == null) {
+      _showErrorSnackBar('Please select a customer first before adding their vehicle');
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => VehicleCreationDialog(
+        customer: _purchaseSource == PurchaseSource.fromCustomer ? _selectedCustomer : null,
+        isForCustomer: _purchaseSource == PurchaseSource.fromCustomer,
+        onVehicleCreated: (vehicle) {
+          _logger.info('Vehicle created and added to list', tag: 'Purchase', data: {
+            'vehicleId': vehicle.id,
+            'isForCustomer': _purchaseSource == PurchaseSource.fromCustomer,
+            'customerId': _selectedCustomer?.id,
+          });
+
+          // Add to appropriate list and select it
+          setState(() {
+            if (_purchaseSource == PurchaseSource.fromCustomer) {
+              _customerCars.add(vehicle);
+            } else {
+              _availableCars.add(vehicle);
+            }
+            _selectedCar = vehicle;
+          });
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Vehicle added successfully!'),
+              backgroundColor: AppTheme.successColor,
+              behavior: SnackBarBehavior.floating,
+              action: SnackBarAction(
+                label: 'Select',
+                textColor: Colors.white,
+                onPressed: () {
+                  // Vehicle is already selected above
+                },
+              ),
+            ),
+          );
+        },
+        onCancel: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1051,6 +1173,19 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
                   ),
                 ),
                 Spacer(),
+                // Add vehicle button
+                TextButton.icon(
+                  onPressed: () => _showVehicleCreationDialog(),
+                  icon: Icon(Icons.add, size: 16.sp),
+                  label: Text(_purchaseSource == PurchaseSource.fromCustomer 
+                      ? 'Add Customer Vehicle' 
+                      : 'Add Supplier Vehicle'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.primaryColor,
+                    backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                  ),
+                ),
+                SizedBox(width: 8.w),
                 if (_loadingCars)
                   SizedBox(
                     width: 16.w,

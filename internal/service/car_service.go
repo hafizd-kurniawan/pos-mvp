@@ -32,15 +32,32 @@ func NewCarService(carRepo repository.CarRepository) CarService {
 
 func (s *carService) CreateCar(req CreateCarRequest) (*model.Car, error) {
 	car := &model.Car{
-		Brand:       req.Brand,
-		Model:       req.Model,
-		Year:        req.Year,
-		Color:       req.Color,
-		Price:       req.Price,
-		Mileage:     req.Mileage,
-		VIN:         req.VIN,
-		Status:      req.Status,
-		Description: req.Description,
+		LicensePlate: req.LicensePlate,
+		Brand:        req.Brand,
+		Model:        req.Model,
+		Year:         req.Year,
+		Color:        req.Color,
+		Price:        req.Price,
+		Mileage:      req.Mileage,
+		VIN:          req.VIN,
+		FuelType:     req.FuelType,
+		Transmission: req.Transmission,
+		Status:       req.Status,
+		Description:  req.Description,
+		CustomerID:   req.CustomerID,
+	}
+
+	// Set optional fields
+	if req.EngineNumber != "" {
+		car.EngineNumber = &req.EngineNumber
+	}
+	if req.Notes != "" {
+		car.Notes = &req.Notes
+	}
+	if req.Condition != "" {
+		car.Condition = req.Condition
+	} else {
+		car.Condition = "good" // Default condition
 	}
 
 	// Set default status if not provided

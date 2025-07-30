@@ -304,4 +304,85 @@ class CarService {
       );
     }
   }
+
+  // Create a new car
+  Future<ApiResponse<Car>> createCar({
+    required String licensePlate,
+    required String brand,
+    required String model,
+    required int year,
+    required String color,
+    required String fuelType,
+    required String transmission,
+    required int mileage,
+    required double price,
+    String? vin,
+    String? engineNumber,
+    String? condition,
+    String? notes,
+    String? customerId, // Reference to customer for customer-owned vehicles
+  }) async {
+    try {
+      final requestData = {
+        'license_plate': licensePlate,
+        'brand': brand,
+        'model': model,
+        'year': year,
+        'color': color,
+        'fuel_type': fuelType,
+        'transmission': transmission,
+        'mileage': mileage,
+        'price': price,
+        'status': 'available',
+        if (vin != null && vin.isNotEmpty) 'vin': vin,
+        if (engineNumber != null && engineNumber.isNotEmpty) 'engine_number': engineNumber,
+        if (condition != null && condition.isNotEmpty) 'condition': condition,
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+        if (customerId != null && customerId.isNotEmpty) 'customer_id': customerId,
+      };
+
+      final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.carsEndpoint}');
+      
+      _logger.apiCall(uri.toString(), method: 'POST', data: requestData);
+      final stopwatch = Stopwatch()..start();
+
+      final response = await http.post(
+        uri,
+        headers: _authService.getAuthHeaders(),
+        body: jsonEncode(requestData),
+      );
+
+      stopwatch.stop();
+      _logger.apiResponse(uri.toString(), response.statusCode, duration: stopwatch.elapsed);
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201 && data['success'] == true) {
+        final car = Car.fromJson(data['data']);
+        
+        return ApiResponse<Car>(
+          success: true,
+          message: data['message'] ?? 'Car created successfully',
+          data: car,
+        );
+      } else {
+        final errorMessage = data['message'] ?? 'Failed to create car';
+        _logger.apiError(uri.toString(), error: errorMessage, statusCode: response.statusCode, response: data);
+        
+        return ApiResponse<Car>(
+          success: false,
+          message: errorMessage,
+        );
+      }
+    } catch (e, stackTrace) {
+      _logger.apiError('${AppConstants.baseUrl}${AppConstants.carsEndpoint}', 
+                      error: e, stackTrace: stackTrace);
+      _logger.networkError('${AppConstants.baseUrl}${AppConstants.carsEndpoint}', 'Create car failed: $e');
+      
+      return ApiResponse<Car>(
+        success: false,
+        message: 'Network error: $e',
+      );
+    }
+  }
 }
