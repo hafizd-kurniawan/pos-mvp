@@ -88,7 +88,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
     _logger.userAction('Load available cars for purchase');
 
     try {
-      final response = await _carService.getCars(status: 'available');
+      final response = await _carService.getAvailableCars();
       
       if (response.success && response.data != null) {
         setState(() {

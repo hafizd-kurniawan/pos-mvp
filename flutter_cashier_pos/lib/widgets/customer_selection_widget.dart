@@ -8,11 +8,13 @@ import '../widgets/customer_form_dialog.dart';
 class CustomerSelectionWidget extends StatefulWidget {
   final Customer? selectedCustomer;
   final Function(Customer) onCustomerSelected;
+  final String? hintText;
 
   const CustomerSelectionWidget({
     super.key,
     this.selectedCustomer,
     required this.onCustomerSelected,
+    this.hintText,
   });
 
   @override
@@ -177,7 +179,7 @@ class _CustomerSelectionWidgetState extends State<CustomerSelectionWidget> {
           controller: _searchController,
           decoration: InputDecoration(
             labelText: 'Search Customer',
-            hintText: 'Type name, phone, or email...',
+            hintText: widget.hintText ?? 'Type name, phone, or email...',
             prefixIcon: Icon(Icons.search, size: 20.sp),
             suffixIcon: _isSearching
                 ? Padding(

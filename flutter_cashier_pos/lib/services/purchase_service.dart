@@ -47,14 +47,15 @@ class PurchaseService {
           data: data['data'], // Contains invoice, car, transaction data
         );
       } else {
-        _logger.error('Purchase creation failed', tag: 'Purchase', error: data['message']);
+        _logger.apiError(AppConstants.buyEndpoint, response.statusCode, data['message'] ?? 'Failed to create purchase', response: data);
         return ApiResponse<Map<String, dynamic>>(
           success: false,
           message: data['message'] ?? 'Failed to create purchase',
         );
       }
     } catch (e, stackTrace) {
-      _logger.apiError(AppConstants.buyEndpoint, e, stackTrace: stackTrace);
+      _logger.networkError(AppConstants.buyEndpoint, e.toString());
+      _logger.error('Purchase creation failed with exception', tag: 'Purchase', error: e, stackTrace: stackTrace);
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Network error: $e',
@@ -176,7 +177,7 @@ class PurchaseService {
   }
 
   // Calculate total amount (for purchases, usually no discount)
-  double calculateTotalAmount(double amount, double discountAmount = 0) {
+  double calculateTotalAmount(double amount, [double discountAmount = 0]) {
     return amount - discountAmount;
   }
 

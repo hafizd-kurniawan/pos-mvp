@@ -39,6 +39,13 @@ class LoggerService {
         level: _getLogLevelValue(LogLevel.error),
       );
     }
+    
+    // Log to console for easier debugging
+    if (kDebugMode) {
+      print('🔴 ERROR [${tag ?? 'LoggerService'}]: $message');
+      if (error != null) print('🔴 ERROR_DATA: $error');
+      if (stackTrace != null) print('🔴 STACK_TRACE: $stackTrace');
+    }
   }
 
   void critical(String message, {String? tag, dynamic error, StackTrace? stackTrace}) {
@@ -84,6 +91,21 @@ class LoggerService {
 
   void uiError(String widget, String error, {StackTrace? stackTrace}) {
     this.error('UI Error in $widget: $error', tag: 'UI', error: error, stackTrace: stackTrace);
+  }
+
+  void apiError(String endpoint, int? statusCode, String error, {dynamic response}) {
+    final errorMessage = 'API Error: $endpoint (${statusCode ?? 'Unknown'})';
+    this.error(errorMessage, tag: 'API', error: error);
+    if (response != null && kDebugMode) {
+      print('🔴 API_RESPONSE: $response');
+    }
+  }
+
+  void networkError(String endpoint, String error) {
+    this.error('Network Error: $endpoint', tag: 'Network', error: error);
+    if (kDebugMode) {
+      print('🔴 NETWORK_ERROR: $endpoint - $error');
+    }
   }
 
   void performanceWarning(String operation, Duration duration) {

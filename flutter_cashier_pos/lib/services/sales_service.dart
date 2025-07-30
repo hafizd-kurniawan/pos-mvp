@@ -48,14 +48,15 @@ class SalesService {
           data: Invoice.fromJson(data['data']['invoice']),
         );
       } else {
-        _logger.error('Sale creation failed', tag: 'Sales', error: data['message']);
+        _logger.apiError(AppConstants.sellEndpoint, response.statusCode, data['message'] ?? 'Failed to create sale', response: data);
         return ApiResponse<Invoice>(
           success: false,
           message: data['message'] ?? 'Failed to create sale',
         );
       }
     } catch (e, stackTrace) {
-      _logger.apiError(AppConstants.sellEndpoint, e, stackTrace: stackTrace);
+      _logger.networkError(AppConstants.sellEndpoint, e.toString());
+      _logger.error('Sale creation failed with exception', tag: 'Sales', error: e, stackTrace: stackTrace);
       return ApiResponse<Invoice>(
         success: false,
         message: 'Network error: $e',
