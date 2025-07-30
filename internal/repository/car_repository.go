@@ -37,8 +37,8 @@ func (r *carRepository) Create(car *model.Car) error {
 	car.UpdatedAt = time.Now()
 
 	query := `
-		INSERT INTO cars (id, brand, model, year, color, price, mileage, vin, status, description, created_at, updated_at)
-		VALUES (:id, :brand, :model, :year, :color, :price, :mileage, :vin, :status, :description, :created_at, :updated_at)`
+		INSERT INTO cars (id, license_plate, brand, model, year, color, price, mileage, vin, engine_number, fuel_type, transmission, condition, status, description, notes, customer_id, created_at, updated_at)
+		VALUES (:id, :license_plate, :brand, :model, :year, :color, :price, :mileage, :vin, :engine_number, :fuel_type, :transmission, :condition, :status, :description, :notes, :customer_id, :created_at, :updated_at)`
 
 	_, err := r.db.NamedExec(query, car)
 	return err
@@ -89,9 +89,11 @@ func (r *carRepository) Update(car *model.Car) error {
 
 	query := `
 		UPDATE cars 
-		SET brand = :brand, model = :model, year = :year, color = :color, 
-		    price = :price, mileage = :mileage, vin = :vin, status = :status, 
-		    description = :description, updated_at = :updated_at
+		SET license_plate = :license_plate, brand = :brand, model = :model, year = :year, color = :color, 
+		    price = :price, mileage = :mileage, vin = :vin, engine_number = :engine_number,
+		    fuel_type = :fuel_type, transmission = :transmission, condition = :condition,
+		    status = :status, description = :description, notes = :notes, customer_id = :customer_id,
+		    updated_at = :updated_at
 		WHERE id = :id AND deleted_at IS NULL`
 
 	result, err := r.db.NamedExec(query, car)

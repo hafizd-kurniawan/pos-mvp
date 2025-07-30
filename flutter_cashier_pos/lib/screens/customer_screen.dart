@@ -148,16 +148,80 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.surfaceColor,
       appBar: AppBar(
-        title: const Text('Customers'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/dashboard'),
+        title: Row(
+          children: [
+            Container(
+              width: 32.w,
+              height: 32.h,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Icon(
+                Icons.people_rounded,
+                size: 20.sp,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Customer Management',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                Text(
+                  'Manage customer database',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.8),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        leading: Container(
+          margin: EdgeInsets.only(left: 16.w),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: IconButton(
+            icon: Icon(
+              Icons.arrow_back_rounded,
+              color: Colors.white,
+              size: 20.sp,
+            ),
+            onPressed: () => context.go('/dashboard'),
+          ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => _loadCustomers(isRefresh: true),
+          Container(
+            margin: EdgeInsets.only(right: 16.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.refresh_rounded,
+                color: Colors.white,
+                size: 20.sp,
+              ),
+              onPressed: () => _loadCustomers(isRefresh: true),
+            ),
           ),
         ],
       ),
@@ -166,145 +230,326 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
         isLoading: _isLoading && _customers.isEmpty,
         child: Column(
           children: [
-            // Search section
+            // Modern search section
             Container(
-              padding: EdgeInsets.all(16.w),
+              margin: EdgeInsets.all(24.w),
+              padding: EdgeInsets.all(24.w),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            hintText: 'Search by name, email, or phone...',
-                            prefixIcon: Icon(Icons.search, size: 20.sp),
-                            suffixIcon: _searchController.text.isNotEmpty
-                                ? IconButton(
-                                    icon: Icon(Icons.clear, size: 20.sp),
-                                    onPressed: () {
-                                      _searchController.clear();
-                                      _searchCustomers();
-                                    },
-                                  )
-                                : null,
-                          ),
-                          textInputAction: TextInputAction.search,
-                          onSubmitted: (_) => _searchCustomers(),
+                      Container(
+                        width: 40.w,
+                        height: 40.h,
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.primaryGradient,
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: Icon(
+                          Icons.search_rounded,
+                          size: 20.sp,
+                          color: Colors.white,
                         ),
                       ),
-                      SizedBox(width: 8.w),
-                      ElevatedButton.icon(
-                        onPressed: _isSearching ? null : _searchCustomers,
-                        icon: _isSearching
-                            ? SizedBox(
-                                width: 16.w,
-                                height: 16.h,
-                                child: const CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Icon(Icons.search, size: 18.sp),
-                        label: const Text('Search'),
+                      SizedBox(width: 16.w),
+                      Text(
+                        'Search Customers',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.grey.shade900,
+                        ),
                       ),
                     ],
                   ),
-                  
-                  SizedBox(height: 12.h),
-                  
-                  // Quick phone search
-                  Text(
-                    'Quick Search by Phone:',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
+                  SizedBox(height: 20.h),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(16.r),
+                      border: Border.all(
+                        color: Colors.grey.shade200,
+                        width: 1,
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search by name, email, or phone number...',
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 14.sp,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          size: 20.sp,
+                          color: Colors.grey.shade400,
+                        ),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.clear_rounded,
+                                  size: 20.sp,
+                                  color: Colors.grey.shade400,
+                                ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _searchCustomers();
+                                },
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 16.h,
+                        ),
+                      ),
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (_) => _searchCustomers(),
                     ),
                   ),
-                  SizedBox(height: 8.h),
-                  Wrap(
-                    spacing: 8.w,
-                    children: ['08', '081', '082', '083', '085', '087', '089'].map(
-                      (prefix) => ActionChip(
-                        label: Text(prefix),
-                        onPressed: () {
-                          _searchController.text = prefix;
-                          _searchByPhone(prefix);
-                        },
+                  SizedBox(height: 16.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: AppTheme.primaryGradient,
+                            borderRadius: BorderRadius.circular(12.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed: _isSearching ? null : _searchCustomers,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: EdgeInsets.symmetric(vertical: 14.h),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                            ),
+                            icon: _isSearching
+                                ? SizedBox(
+                                    width: 16.w,
+                                    height: 16.h,
+                                    child: const CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  )
+                                : Icon(Icons.search_rounded, size: 18.sp),
+                            label: Text(
+                              'Search Customers',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ).toList(),
+                    ],
                   ),
                 ],
               ),
             ),
             
-            // Customer count
+            // Customer count with modern design
             if (_customers.isNotEmpty)
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                color: Colors.grey.shade50,
-                child: Text(
-                  '${_customers.length} customers found',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade600,
+                margin: EdgeInsets.symmetric(horizontal: 24.w),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withOpacity(0.2),
+                    width: 1,
                   ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24.w,
+                      height: 24.h,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor,
+                        borderRadius: BorderRadius.circular(6.r),
+                      ),
+                      child: Icon(
+                        Icons.people_rounded,
+                        size: 14.sp,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Text(
+                      '${_customers.length} customers found',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             
-            // Customer list
+            SizedBox(height: 16.h),
+            
+            // Customer list with modern cards
             Expanded(
               child: _customers.isEmpty && !_isLoading
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.people_outline,
-                            size: 64.sp,
-                            color: Colors.grey.shade400,
+                          Container(
+                            width: 80.w,
+                            height: 80.h,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(20.r),
+                            ),
+                            child: Icon(
+                              Icons.people_outline_rounded,
+                              size: 40.sp,
+                              color: Colors.grey.shade400,
+                            ),
                           ),
-                          SizedBox(height: 16.h),
+                          SizedBox(height: 24.h),
                           Text(
                             'No customers found',
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           SizedBox(height: 8.h),
                           Text(
-                            'Try adjusting your search or add a new customer',
+                            'Try adjusting your search or add a new customer\nto get started with customer management',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.grey.shade500,
+                              height: 1.5,
                             ),
                             textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 32.h),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: AppTheme.primaryGradient,
+                              borderRadius: BorderRadius.circular(12.r),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primaryColor.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton.icon(
+                              onPressed: _showAddCustomerDialog,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 24.w,
+                                  vertical: 14.h,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                              ),
+                              icon: Icon(Icons.person_add_rounded, size: 18.sp),
+                              label: Text(
+                                'Add First Customer',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     )
                   : ListView.builder(
-                      padding: EdgeInsets.all(16.w),
+                      padding: EdgeInsets.symmetric(horizontal: 24.w),
                       itemCount: _customers.length + (_hasMoreData ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index == _customers.length) {
                           // Load more indicator
-                          return Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16.h),
+                          return Container(
+                            margin: EdgeInsets.symmetric(vertical: 16.h),
                             child: Center(
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : () => _loadCustomers(),
-                                child: _isLoading
-                                    ? SizedBox(
-                                        width: 20.w,
-                                        height: 20.h,
-                                        child: const CircularProgressIndicator(strokeWidth: 2),
-                                      )
-                                    : const Text('Load More'),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: AppTheme.primaryGradient,
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : () => _loadCustomers(),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 32.w,
+                                      vertical: 14.h,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12.r),
+                                    ),
+                                  ),
+                                  child: _isLoading
+                                      ? SizedBox(
+                                          width: 20.w,
+                                          height: 20.h,
+                                          child: const CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          ),
+                                        )
+                                      : Text(
+                                          'Load More Customers',
+                                          style: TextStyle(
+                                            fontSize: 14.sp,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                ),
                               ),
                             ),
                           );
                         }
 
                         final customer = _customers[index];
-                        return CustomerCard(
-                          customer: customer,
-                          onTap: () => _showEditCustomerDialog(customer),
+                        return Container(
+                          margin: EdgeInsets.only(bottom: 16.h),
+                          child: CustomerCard(
+                            customer: customer,
+                            onTap: () => _showEditCustomerDialog(customer),
+                          ),
                         );
                       },
                     ),
@@ -313,10 +558,31 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
         ),
       ),
       
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddCustomerDialog,
-        icon: Icon(Icons.person_add, size: 20.sp),
-        label: const Text('Add Customer'),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: AppTheme.primaryGradient,
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withOpacity(0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: _showAddCustomerDialog,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          icon: Icon(Icons.person_add_rounded, size: 20.sp),
+          label: Text(
+            'Add Customer',
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ),
     );
   }
