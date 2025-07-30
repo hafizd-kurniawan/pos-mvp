@@ -17,22 +17,23 @@ type BaseModel struct {
 // Car represents a car in the showroom inventory
 type Car struct {
 	BaseModel
-	LicensePlate string     `json:"license_plate" db:"license_plate"`
-	Brand        string     `json:"brand" db:"brand"`
-	Model        string     `json:"model" db:"model"`
-	Year         int        `json:"year" db:"year"`
-	Color        string     `json:"color" db:"color"`
-	Price        float64    `json:"price" db:"price"`
-	Mileage      int        `json:"mileage" db:"mileage"`
-	VIN          string     `json:"vin" db:"vin"`
-	EngineNumber *string    `json:"engine_number,omitempty" db:"engine_number"`
-	FuelType     string     `json:"fuel_type" db:"fuel_type"`
-	Transmission string     `json:"transmission" db:"transmission"`
-	Condition    string     `json:"condition" db:"condition"`
-	Status       string     `json:"status" db:"status"` // available, sold, reserved, in_repair
-	Description  string     `json:"description" db:"description"`
-	Notes        *string    `json:"notes,omitempty" db:"notes"`
-	CustomerID   *uuid.UUID `json:"customer_id,omitempty" db:"customer_id"` // Reference to customer for customer-owned vehicles
+	LicensePlate    string     `json:"license_plate" db:"license_plate"`
+	Brand           string     `json:"brand" db:"brand"`
+	Model           string     `json:"model" db:"model"`
+	Year            int        `json:"year" db:"year"`
+	Color           string     `json:"color" db:"color"`
+	Price           float64    `json:"price" db:"price"`
+	Mileage         int        `json:"mileage" db:"mileage"`
+	VIN             string     `json:"vin" db:"vin"`
+	EngineNumber    *string    `json:"engine_number,omitempty" db:"engine_number"`
+	FuelType        string     `json:"fuel_type" db:"fuel_type"`
+	Transmission    string     `json:"transmission" db:"transmission"`
+	Condition       string     `json:"condition" db:"condition"`
+	Status          string     `json:"status" db:"status"` // available, sold, reserved, in_repair
+	Description     string     `json:"description" db:"description"`
+	Notes           *string    `json:"notes,omitempty" db:"notes"`
+	CustomerID      *uuid.UUID `json:"customer_id,omitempty" db:"customer_id"` // Reference to customer for customer-owned vehicles
+	PrimaryPhotoURL *string    `json:"primary_photo_url,omitempty" db:"primary_photo_url"` // Primary photo from left join
 }
 
 // Customer represents a customer

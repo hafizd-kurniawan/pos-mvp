@@ -47,10 +47,14 @@ func (r *carRepository) Create(car *model.Car) error {
 func (r *carRepository) GetByID(id uuid.UUID) (*model.Car, error) {
 	var car model.Car
 	query := `
-		SELECT id, brand, model, year, color, price, mileage, vin, status, description, 
-		       created_at, updated_at, deleted_at
-		FROM cars 
-		WHERE id = $1 AND deleted_at IS NULL`
+		SELECT c.id, c.license_plate, c.brand, c.model, c.year, c.color, c.price, 
+		       c.mileage, c.vin, c.engine_number, c.fuel_type, c.transmission, 
+		       c.condition, c.status, c.description, c.notes, c.customer_id,
+		       c.created_at, c.updated_at, c.deleted_at,
+		       p.file_path as primary_photo_url
+		FROM cars c
+		LEFT JOIN photos p ON c.id = p.entity_id AND p.entity_type = 'car' AND p.is_primary = true AND p.deleted_at IS NULL
+		WHERE c.id = $1 AND c.deleted_at IS NULL`
 
 	err := r.db.Get(&car, query, id)
 	if err != nil {
@@ -65,11 +69,15 @@ func (r *carRepository) GetByID(id uuid.UUID) (*model.Car, error) {
 func (r *carRepository) GetAll(limit, offset int) ([]model.Car, error) {
 	var cars []model.Car
 	query := `
-		SELECT id, brand, model, year, color, price, mileage, vin, status, description,
-		       created_at, updated_at, deleted_at
-		FROM cars 
-		WHERE deleted_at IS NULL
-		ORDER BY created_at DESC
+		SELECT c.id, c.license_plate, c.brand, c.model, c.year, c.color, c.price, 
+		       c.mileage, c.vin, c.engine_number, c.fuel_type, c.transmission, 
+		       c.condition, c.status, c.description, c.notes, c.customer_id,
+		       c.created_at, c.updated_at, c.deleted_at,
+		       p.file_path as primary_photo_url
+		FROM cars c
+		LEFT JOIN photos p ON c.id = p.entity_id AND p.entity_type = 'car' AND p.is_primary = true AND p.deleted_at IS NULL
+		WHERE c.deleted_at IS NULL
+		ORDER BY c.created_at DESC
 		LIMIT $1 OFFSET $2`
 
 	err := r.db.Select(&cars, query, limit, offset)
@@ -148,11 +156,15 @@ func (r *carRepository) SoftDelete(id uuid.UUID) error {
 func (r *carRepository) GetByStatus(status string, limit, offset int) ([]model.Car, error) {
 	var cars []model.Car
 	query := `
-		SELECT id, brand, model, year, color, price, mileage, vin, status, description,
-		       created_at, updated_at, deleted_at
-		FROM cars 
-		WHERE status = $1 AND deleted_at IS NULL
-		ORDER BY created_at DESC
+		SELECT c.id, c.license_plate, c.brand, c.model, c.year, c.color, c.price, 
+		       c.mileage, c.vin, c.engine_number, c.fuel_type, c.transmission, 
+		       c.condition, c.status, c.description, c.notes, c.customer_id,
+		       c.created_at, c.updated_at, c.deleted_at,
+		       p.file_path as primary_photo_url
+		FROM cars c
+		LEFT JOIN photos p ON c.id = p.entity_id AND p.entity_type = 'car' AND p.is_primary = true AND p.deleted_at IS NULL
+		WHERE c.status = $1 AND c.deleted_at IS NULL
+		ORDER BY c.created_at DESC
 		LIMIT $2 OFFSET $3`
 
 	err := r.db.Select(&cars, query, status, limit, offset)
@@ -162,12 +174,16 @@ func (r *carRepository) GetByStatus(status string, limit, offset int) ([]model.C
 func (r *carRepository) Search(query string, limit, offset int) ([]model.Car, error) {
 	var cars []model.Car
 	searchQuery := `
-		SELECT id, brand, model, year, color, price, mileage, vin, status, description,
-		       created_at, updated_at, deleted_at
-		FROM cars 
-		WHERE (brand ILIKE '%' || $1 || '%' OR model ILIKE '%' || $1 || '%' OR color ILIKE '%' || $1 || '%')
-		AND deleted_at IS NULL
-		ORDER BY created_at DESC
+		SELECT c.id, c.license_plate, c.brand, c.model, c.year, c.color, c.price, 
+		       c.mileage, c.vin, c.engine_number, c.fuel_type, c.transmission, 
+		       c.condition, c.status, c.description, c.notes, c.customer_id,
+		       c.created_at, c.updated_at, c.deleted_at,
+		       p.file_path as primary_photo_url
+		FROM cars c
+		LEFT JOIN photos p ON c.id = p.entity_id AND p.entity_type = 'car' AND p.is_primary = true AND p.deleted_at IS NULL
+		WHERE (c.brand ILIKE '%' || $1 || '%' OR c.model ILIKE '%' || $1 || '%' OR c.color ILIKE '%' || $1 || '%')
+		AND c.deleted_at IS NULL
+		ORDER BY c.created_at DESC
 		LIMIT $2 OFFSET $3`
 
 	err := r.db.Select(&cars, searchQuery, query, limit, offset)
@@ -184,9 +200,13 @@ func (r *carRepository) Count() (int, error) {
 func (r *carRepository) GetByCustomer(customerID uuid.UUID) ([]model.Car, error) {
 	var cars []model.Car
 	query := `
-		SELECT c.id, c.brand, c.model, c.year, c.color, c.price, c.mileage, c.vin, c.status, c.description,
-		       c.created_at, c.updated_at, c.deleted_at
+		SELECT c.id, c.license_plate, c.brand, c.model, c.year, c.color, c.price, 
+		       c.mileage, c.vin, c.engine_number, c.fuel_type, c.transmission, 
+		       c.condition, c.status, c.description, c.notes, c.customer_id,
+		       c.created_at, c.updated_at, c.deleted_at,
+		       p.file_path as primary_photo_url
 		FROM cars c
+		LEFT JOIN photos p ON c.id = p.entity_id AND p.entity_type = 'car' AND p.is_primary = true AND p.deleted_at IS NULL
 		INNER JOIN invoices i ON c.id = i.car_id
 		WHERE i.customer_id = $1 AND i.invoice_type = 'purchase' AND c.deleted_at IS NULL
 		AND c.status IN ('available', 'in_repair')
