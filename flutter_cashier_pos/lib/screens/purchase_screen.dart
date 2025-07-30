@@ -22,6 +22,9 @@ import '../widgets/vehicle_grid_widget.dart';
 import '../widgets/photo_upload_widget.dart';
 import '../utils/app_theme.dart';
 
+// Purchase source selection
+enum PurchaseSource { fromCustomer, fromSupplier }
+
 class PurchaseScreen extends StatefulWidget {
   const PurchaseScreen({Key? key}) : super(key: key);
 
@@ -50,7 +53,6 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
   String _selectedPaymentMethod = AppConstants.paymentMethods[0];
   
   // Purchase source selection
-  enum PurchaseSource { fromCustomer, fromSupplier }
   PurchaseSource _purchaseSource = PurchaseSource.fromSupplier;
   
   // State
@@ -513,20 +515,13 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
         return {'success': false, 'message': 'User not authenticated'};
       }
 
-      // Create work order data
-      final workOrderData = {
-        'car_id': carId,
-        'mechanic_id': mechanicId,
-        'description': description,
-        'labor_cost': 0.0, // Will be filled by mechanic
-        'parts_cost': 0.0, // Will be filled by mechanic
-        'total_cost': 0.0, // Will be calculated
-        'status': 'pending',
-        'progress': 0,
-        'notes': 'Created automatically from vehicle purchase',
-      };
-
-      return await _workOrderService.createWorkOrder(workOrderData);
+      return await _workOrderService.createWorkOrder(
+        carId: carId,
+        mechanicId: mechanicId,
+        description: description,
+        laborCost: 0.0, // Will be filled by mechanic
+        notes: 'Created automatically from vehicle purchase',
+      );
     } catch (e) {
       return {'success': false, 'message': 'Failed to create work order: $e'};
     }
