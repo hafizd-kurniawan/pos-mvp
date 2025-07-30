@@ -76,8 +76,9 @@ class CustomerService {
   // Search customers by phone number
   Future<ApiResponse<List<Customer>>> searchCustomersByPhone(String phone) async {
     try {
+      // Backend expects 'q' parameter for search, not 'phone'
       final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.customersEndpoint}/search')
-          .replace(queryParameters: {'phone': phone});
+          .replace(queryParameters: {'q': phone});
 
       _logger.apiCall(uri.toString(), method: 'GET');
       final stopwatch = Stopwatch()..start();
@@ -181,11 +182,12 @@ class CustomerService {
       // Split name into first_name and last_name for backend
       final nameParts = name.trim().split(' ');
       final firstName = nameParts.isNotEmpty ? nameParts.first : '';
-      final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+      // Backend requires last_name field even if empty
+      final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : 'N/A';
 
       final requestBody = {
         'first_name': firstName,
-        'last_name': lastName,
+        'last_name': lastName, // Always provide this as backend requires it
         'email': email,
         'phone': phone,
         if (address != null && address.isNotEmpty) 'address': address,
@@ -252,11 +254,12 @@ class CustomerService {
       // Split name into first_name and last_name for backend
       final nameParts = name.trim().split(' ');
       final firstName = nameParts.isNotEmpty ? nameParts.first : '';
-      final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+      // Backend requires last_name field even if empty
+      final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : 'N/A';
 
       final requestBody = {
         'first_name': firstName,
-        'last_name': lastName,
+        'last_name': lastName, // Always provide this as backend requires it
         'email': email,
         'phone': phone,
         if (address != null && address.isNotEmpty) 'address': address,
