@@ -2,10 +2,51 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
 import '../models/work_order.dart';
+import '../services/logger_service.dart';
 import 'auth_service.dart';
 
 class WorkOrderService {
   final AuthService _authService = AuthService();
+  final LoggerService _logger = logger;
+
+  // Create new work order
+  Future<Map<String, dynamic>> createWorkOrder(Map<String, dynamic> workOrderData) async {
+    try {
+      _logger.info('Creating work order', tag: 'WorkOrder', data: workOrderData);
+
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/work-orders'),
+        headers: _authService.getAuthHeaders(),
+        body: jsonEncode(workOrderData),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201 && data['success'] == true) {
+        _logger.info('Work order created successfully', tag: 'WorkOrder', data: {
+          'workOrderNumber': data['data']['work_order_number'],
+        });
+
+        return {
+          'success': true,
+          'message': 'Work order created successfully',
+          'workOrder': data['data'],
+        };
+      } else {
+        _logger.error('Work order creation failed', tag: 'WorkOrder', error: data['message']);
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Failed to create work order',
+        };
+      }
+    } catch (e, stackTrace) {
+      _logger.error('Work order creation error', tag: 'WorkOrder', error: e, stackTrace: stackTrace);
+      return {
+        'success': false,
+        'message': 'Network error: $e',
+      };
+    }
+  }
 
   // Get work orders assigned to current user (mechanic)
   Future<Map<String, dynamic>> getMyWorkOrders({

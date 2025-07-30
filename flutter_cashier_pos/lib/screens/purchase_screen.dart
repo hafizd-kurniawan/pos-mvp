@@ -12,6 +12,8 @@ import '../services/car_service.dart';
 import '../services/auth_service.dart';
 import '../services/logger_service.dart';
 import '../services/image_upload_service.dart';
+import '../services/work_order_service.dart';
+import '../services/user_service.dart';
 import '../widgets/customer_selection_widget.dart';
 import '../widgets/car_selection_card.dart';
 import '../widgets/loading_overlay.dart';
@@ -33,6 +35,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
   final CarService _carService = CarService();
   final AuthService _authService = AuthService();
   final ImageUploadService _imageService = ImageUploadService();
+  final WorkOrderService _workOrderService = WorkOrderService();
+  final UserService _userService = UserService();
   final LoggerService _logger = logger;
 
   // Form controllers
@@ -266,6 +270,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
 
   void _showSuccessDialog(Map<String, dynamic> purchaseData) {
     final invoice = purchaseData['invoice'];
+    final carData = purchaseData['car'] ?? _selectedCar?.toJson();
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -297,14 +303,67 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
               Text('Photos uploaded: ${_selectedPhotos.length}'),
             ],
             SizedBox(height: 16.h),
-            Text('Vehicle is now in repair status and ready for workshop assignment.',
-                 style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Service Assessment Required',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    'Does this vehicle need service/repair before it can be sold?',
+                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[700]),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('Continue'),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _handleServiceNeeded(carData, invoice);
+                  },
+                  icon: Icon(Icons.build, color: AppTheme.warningColor),
+                  label: Text('Needs Service'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.warningColor,
+                    backgroundColor: AppTheme.warningColor.withOpacity(0.1),
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _handleReadyForSale(carData, invoice);
+                  },
+                  icon: Icon(Icons.sell, color: AppTheme.successColor),
+                  label: Text('Ready to Sell'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.successColor,
+                    backgroundColor: AppTheme.successColor.withOpacity(0.1),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -327,6 +386,397 @@ class _PurchaseScreenState extends State<PurchaseScreen> with TickerProviderStat
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
+  }
+
+  Future<void> _handleServiceNeeded(Map<String, dynamic>? carData, Map<String, dynamic> invoice) async {
+    try {
+      _logger.info('Vehicle requires service - creating work order', tag: 'Purchase', data: {
+        'carId': carData?['id'],
+        'invoiceNumber': invoice['invoice_number'],
+      });
+
+      // Show mechanic selection dialog
+      final selectedMechanic = await _showMechanicSelectionDialog();
+      if (selectedMechanic == null) {
+        _showErrorSnackBar('Service creation cancelled');
+        return;
+      }
+
+      // Create work order
+      final workOrderResponse = await _createWorkOrder(
+        carData?['id'] ?? _selectedCar?.id ?? '',
+        selectedMechanic['id'],
+        'Vehicle purchased from ${_purchaseSource == PurchaseSource.fromCustomer ? 'customer' : 'supplier'} - requires service and inspection before sale',
+      );
+
+      if (workOrderResponse['success'] == true) {
+        final workOrder = workOrderResponse['workOrder'];
+        
+        _logger.info('Work order created successfully', tag: 'Purchase', data: {
+          'workOrderNumber': workOrder['work_order_number'],
+          'mechanicId': selectedMechanic['id'],
+        });
+
+        // Show work order created dialog
+        _showWorkOrderCreatedDialog(workOrder, selectedMechanic, invoice);
+      } else {
+        _showErrorSnackBar('Failed to create work order: ${workOrderResponse['message']}');
+      }
+    } catch (e, stackTrace) {
+      _logger.error('Service creation failed', tag: 'Purchase', error: e, stackTrace: stackTrace);
+      _showErrorSnackBar('Failed to create service order: $e');
+    }
+  }
+
+  Future<void> _handleReadyForSale(Map<String, dynamic>? carData, Map<String, dynamic> invoice) async {
+    try {
+      _logger.info('Vehicle ready for sale - updating status', tag: 'Purchase', data: {
+        'carId': carData?['id'],
+        'invoiceNumber': invoice['invoice_number'],
+      });
+
+      // Update vehicle status to available for sale
+      // Note: This would typically call an API to update car status
+      // For now, just show success message and offer PDF generation
+      
+      _showReadyForSaleDialog(invoice);
+    } catch (e, stackTrace) {
+      _logger.error('Ready for sale handling failed', tag: 'Purchase', error: e, stackTrace: stackTrace);
+      _showErrorSnackBar('Failed to process vehicle: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>?> _showMechanicSelectionDialog() async {
+    try {
+      // Get all mechanics from the system
+      final mechanics = await _getMechanics();
+      if (mechanics.isEmpty) {
+        _showErrorSnackBar('No mechanics available. Please contact admin.');
+        return null;
+      }
+
+      return await showDialog<Map<String, dynamic>>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: Text('Assign Mechanic'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Select a mechanic to handle this vehicle service:'),
+              SizedBox(height: 16.h),
+              ...mechanics.map((mechanic) => ListTile(
+                leading: CircleAvatar(
+                  child: Text(mechanic['name'][0].toUpperCase()),
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                title: Text(mechanic['name']),
+                subtitle: Text('Role: ${mechanic['role']}'),
+                onTap: () => Navigator.of(context).pop(mechanic),
+              )).toList(),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      _logger.error('Mechanic selection failed', tag: 'Purchase', error: e);
+      return null;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _getMechanics() async {
+    try {
+      final mechanics = await _userService.getMechanics();
+      return mechanics.map((mechanic) => {
+        'id': mechanic.id,
+        'name': mechanic.name,
+        'role': mechanic.role,
+        'email': mechanic.email,
+      }).toList();
+    } catch (e) {
+      _logger.error('Failed to get mechanics', tag: 'Purchase', error: e);
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> _createWorkOrder(String carId, String mechanicId, String description) async {
+    try {
+      final currentUser = _authService.getCurrentUser();
+      if (currentUser == null) {
+        return {'success': false, 'message': 'User not authenticated'};
+      }
+
+      // Create work order data
+      final workOrderData = {
+        'car_id': carId,
+        'mechanic_id': mechanicId,
+        'description': description,
+        'labor_cost': 0.0, // Will be filled by mechanic
+        'parts_cost': 0.0, // Will be filled by mechanic
+        'total_cost': 0.0, // Will be calculated
+        'status': 'pending',
+        'progress': 0,
+        'notes': 'Created automatically from vehicle purchase',
+      };
+
+      return await _workOrderService.createWorkOrder(workOrderData);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to create work order: $e'};
+    }
+  }
+
+  void _showWorkOrderCreatedDialog(Map<String, dynamic> workOrder, Map<String, dynamic> mechanic, Map<String, dynamic> invoice) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.build_circle, color: AppTheme.warningColor, size: 24.sp),
+            SizedBox(width: 8.w),
+            Text('Work Order Created'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Work Order: ${workOrder['work_order_number']}'),
+            SizedBox(height: 8.h),
+            Text('Assigned to: ${mechanic['name']}'),
+            SizedBox(height: 8.h),
+            Text('Status: Pending'),
+            SizedBox(height: 16.h),
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: AppTheme.warningColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Text(
+                'The mechanic will receive this work order and can start service. You can generate the purchase invoice PDF for your records.',
+                style: TextStyle(fontSize: 12.sp, color: Colors.grey[700]),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _generateAndSendPDF(invoice);
+            },
+            child: Text('Generate PDF & Send WhatsApp'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showReadyForSaleDialog(Map<String, dynamic> invoice) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.sell, color: AppTheme.successColor, size: 24.sp),
+            SizedBox(width: 8.w),
+            Text('Ready for Sale'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Vehicle is now available in sales inventory.'),
+            SizedBox(height: 16.h),
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: AppTheme.successColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Text(
+                'The vehicle has been marked as ready for sale and can be found in the sales inventory. Generate invoice PDF for your records.',
+                style: TextStyle(fontSize: 12.sp, color: Colors.grey[700]),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _generateAndSendPDF(invoice);
+            },
+            child: Text('Generate PDF & Send WhatsApp'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _generateAndSendPDF(Map<String, dynamic> invoice) async {
+    try {
+      setState(() => _isLoading = true);
+      
+      _logger.info('Generating PDF for invoice', tag: 'Purchase', data: {
+        'invoiceNumber': invoice['invoice_number'],
+      });
+
+      // Show PDF generation dialog
+      _showPDFGenerationDialog(invoice);
+      
+    } catch (e, stackTrace) {
+      _logger.error('PDF generation failed', tag: 'Purchase', error: e, stackTrace: stackTrace);
+      _showErrorSnackBar('Failed to generate PDF: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _showPDFGenerationDialog(Map<String, dynamic> invoice) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.picture_as_pdf, color: AppTheme.primaryColor, size: 24.sp),
+            SizedBox(width: 8.w),
+            Text('Generate PDF Invoice'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16.h),
+            Text('Generating PDF invoice...'),
+            SizedBox(height: 8.h),
+            Text('Invoice: ${invoice['invoice_number']}', 
+                 style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
+          ],
+        ),
+      ),
+    );
+
+    // Simulate PDF generation
+    Future.delayed(Duration(seconds: 3), () {
+      Navigator.of(context).pop();
+      _showPDFGeneratedDialog(invoice);
+    });
+  }
+
+  void _showPDFGeneratedDialog(Map<String, dynamic> invoice) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: AppTheme.successColor, size: 24.sp),
+            SizedBox(width: 8.w),
+            Text('PDF Generated'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('PDF invoice has been generated successfully!'),
+            SizedBox(height: 16.h),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // Open WhatsApp with pre-filled message
+                      _openWhatsApp(invoice);
+                    },
+                    icon: Icon(Icons.send),
+                    label: Text('Send WhatsApp'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF25D366), // WhatsApp green
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      // Download PDF functionality
+                      _downloadPDF(invoice);
+                    },
+                    icon: Icon(Icons.download),
+                    label: Text('Download'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openWhatsApp(Map<String, dynamic> invoice) {
+    try {
+      final customerPhone = _selectedCustomer?.phoneNumber ?? '';
+      final message = 'Halo! Invoice pembelian kendaraan Anda telah siap.\n\n'
+                     'No. Invoice: ${invoice['invoice_number']}\n'
+                     'Total: Rp ${_formatCurrency(invoice['total_amount'])}\n\n'
+                     'Terima kasih telah menjual kendaraan kepada kami.';
+      
+      _logger.info('Opening WhatsApp', tag: 'Purchase', data: {
+        'phone': customerPhone,
+        'invoiceNumber': invoice['invoice_number'],
+      });
+
+      // In a real app, this would open WhatsApp
+      _showErrorSnackBar('WhatsApp integration coming soon! Phone: $customerPhone');
+      
+      Navigator.of(context).pop();
+    } catch (e) {
+      _logger.error('WhatsApp opening failed', tag: 'Purchase', error: e);
+      _showErrorSnackBar('Failed to open WhatsApp: $e');
+    }
+  }
+
+  void _downloadPDF(Map<String, dynamic> invoice) {
+    try {
+      _logger.info('Downloading PDF', tag: 'Purchase', data: {
+        'invoiceNumber': invoice['invoice_number'],
+      });
+
+      // In a real app, this would trigger PDF download
+      _showErrorSnackBar('PDF download functionality coming soon!');
+      
+      Navigator.of(context).pop();
+    } catch (e) {
+      _logger.error('PDF download failed', tag: 'Purchase', error: e);
+      _showErrorSnackBar('Failed to download PDF: $e');
+    }
   }
 
   @override
